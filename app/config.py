@@ -23,6 +23,10 @@ class Settings_env(BaseSettings):
     def DATABASE_URL(self):
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
+    @property
+    def DATABASE_URL_psycopg(self): #Синхронное подключение формируем dsn
+        return f"postgresql+psycopg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
 
 settings = Settings_env()  # type: ignore
 
