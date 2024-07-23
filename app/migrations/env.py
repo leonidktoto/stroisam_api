@@ -8,14 +8,17 @@ import sys
 from app.config import settings
 from os.path import abspath, dirname
 from app.database import Base
-from app.nomenclature.categories.models import Categories 
-from app.nomenclature.products.models import Products 
-from app.nomenclature.products.product_attribute.models import ProductAttribute
-from app.nomenclature.products.product_image.models import ProductImage 
+from app.catalog.categories.models import Categories
+from app.catalog.products.models import Products
+from app.catalog.attributes.models import Attributes
+from app.catalog.product_attributes.models import ProductAttributes
+from app.catalog.product_images.models import ProductImages
+
 from app.orders.models import Orders
 from app.orders.order_items.models import OrderItems
 from app.users.models import Users
 from app.users.type_user.models import TypeUser
+from app.users.sms_codes.models import SmsCodes
 
 sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
 
