@@ -28,23 +28,3 @@ class Orders(Base):
     user=relationship("Users", back_populates="orders")
     orderitem=relationship("OrderItems", back_populates="order")
 
-
-#  Это создание тригеров на автоматический подсчет total_amount
-async def update_order_total(mapper, connection, target):
-    async with async_session_maker() as session:
-        async with session.begin():
-            order_id = target.order_id
-            result = await session.execute(
-                select(func.sum(OrderItems.price)).filter(OrderItems.order_id == order_id)
-            )
-            total = result.scalar() or 0
-
-            await session.execute(
-                update(Orders).where(Orders.id == order_id).values(total_amount=total)
-            )
-            await session.commit()
-    
-
-# Привязка событий к функциям
-event.listen(OrderItems, 'after_insert', update_order_total)
-event.listen(OrderItems, 'after_update', update_order_total)

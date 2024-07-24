@@ -18,3 +18,4 @@ class SmsCodes(Base):
     is_used: Mapped[bool] = mapped_column(Boolean, server_default="False")
 
     user=relationship("Users", back_populates="sms")
+    

@@ -22,6 +22,8 @@ class Products(Base):
     image = relationship("ProductImages", back_populates="product", cascade="all, delete-orphan")
     orderitem = relationship("OrderItems", back_populates='product')
 
+   
+
     async def __admin_repr__(self, request: Request): 
             return f"{self.product_name}"
 
