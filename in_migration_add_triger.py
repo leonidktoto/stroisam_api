@@ -7,26 +7,36 @@ down_revision = 'YYYY'
 branch_labels = None
 depends_on = None
 
-
 def upgrade():
     # Создание функции триггера
     op.execute("""
     CREATE OR REPLACE FUNCTION update_total_amount()
     RETURNS TRIGGER AS $$
     BEGIN
-        UPDATE orders
-        SET total_amount = (
-            SELECT COALESCE(SUM(price), 0)
-            FROM order_items
-            WHERE order_id = NEW.order_id
-        )
-        WHERE id = NEW.order_id;
-        RETURN NEW;
+        IF TG_OP = 'DELETE' THEN
+            UPDATE orders
+            SET total_amount = (
+                SELECT COALESCE(SUM(quantity * price), 0)
+                FROM order_items
+                WHERE order_id = OLD.order_id
+            )
+            WHERE id = OLD.order_id;
+            RETURN OLD;
+        ELSE
+            UPDATE orders
+            SET total_amount = (
+                SELECT COALESCE(SUM(quantity * price), 0)
+                FROM order_items
+                WHERE order_id = NEW.order_id
+            )
+            WHERE id = NEW.order_id;
+            RETURN NEW;
+        END IF;
     END;
     $$ LANGUAGE plpgsql;
     """)
 
-    # Создание триггера для вставки и обновления
+    # Создание триггера для вставки, обновления и удаления
     op.execute("""
     CREATE TRIGGER trg_update_total_amount
     AFTER INSERT OR UPDATE OR DELETE ON order_items

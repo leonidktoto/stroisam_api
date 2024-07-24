@@ -1,16 +1,16 @@
 from fastapi import FastAPI
-#from app.nomenclature.categories.router import router as router_categories
+
 
 from app.catalog.attributes.models import Attributes
 from app.catalog.product_attributes.models import ProductAttributes
-from app.database import async_engine 
 
 
-from starlette_admin.contrib.sqla import Admin, ModelView
+
+from starlette_admin.contrib.sqla import Admin
 from starlette_admin import I18nConfig, DropDown
-from starlette_admin.views import Link
+
 from starlette.applications import Starlette
-from starlette.middleware.wsgi import WSGIMiddleware
+
 from app.database import sync_engine
 from app.catalog.categories.models import Categories
 from app.catalog.products.models import Products
@@ -22,11 +22,20 @@ from app.users.models import Users
 from app.users.sms_codes.models import SmsCodes
 from app.users.type_user.models import TypeUser
 
+from app.catalog.categories.router import router as router_categories
+from app.catalog.products.router import router as router_products
+
 
 
 
 # Создаем приложение FastAPI
 app = FastAPI()
+
+app.include_router(router_categories)
+app.include_router(router_products)
+
+
+
 app_starlette = Starlette()  # FastAPI()
 
 
