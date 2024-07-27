@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel
 
 class SCategories(BaseModel):
@@ -8,3 +9,7 @@ class SCategories(BaseModel):
 
     class ConfigDict:
         from_attributes = True
+
+class SCategoriesWithChldrn(SCategories):
+    children_id: List[int] | None
+    

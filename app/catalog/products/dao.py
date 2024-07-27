@@ -1,44 +1,20 @@
 
 from app.DAO.base import BaseDAO
+from app.catalog.attributes.models import Attributes
+from app.catalog.product_attributes.models import ProductAttributes
 from app.catalog.products.models import Products
 from app.database import async_session_maker
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload, contains_eager
+from sqlalchemy import alias, and_, func, or_, select
+from sqlalchemy.orm import aliased, joinedload, selectinload, contains_eager
 from app.catalog.product_images.models import ProductImages
+from fastapi.encoders import jsonable_encoder
 
 
 class ProductsDAO(BaseDAO):
     model = Products
 
     @classmethod
-    async def get_products_in_category(cls):
-        async with async_session_maker() as session:
-               # query = select(Products).options(
-               #     selectinload(Products.image)
-               # ).where(Products.category_id == 25)
-               # result = await session.execute(query)
-               # return result.mappings().all()
-        # Подзапрос для фильтрации изображений с logo = True
-            subquery = (
-            select(ProductImages)
-            .where(ProductImages.logo == True)
-            .subquery()
-            )
-
-            # Основной запрос с присоединением подзапроса
-            query = (
-                select(Products)
-                .join(subquery, Products.id == subquery.c.product_id, isouter=True)
-                .options(contains_eager(Products.image, alias=subquery))
-                .where(Products.category_id == 25)
-            )
-
-            result = await session.execute(query)
-            #products = result.scalars().unique().all()
-            return result.mappings().unique().all()
-
-    @classmethod
-    async def get_products_in_category2(cls, category_id: int):
+    async def find_products_by_category_id(cls, category_id: int):
         async with async_session_maker() as session:
             # Подзапрос для фильтрации изображений с logo = True
             subquery = (
@@ -49,7 +25,15 @@ class ProductsDAO(BaseDAO):
 
             # Основной запрос с присоединением подзапроса
             query = (
-                select(Products.id, Products.article, Products.product_name, Products.price, subquery.c.image_url)
+                select(
+                    Products.id, 
+                    Products.article, 
+                    Products.category_id, 
+                    Products.product_name, 
+                    Products.description, 
+                    Products.price, 
+                    Products.stock, 
+                    subquery.c.image_url)
                 .join(subquery, Products.id == subquery.c.product_id, isouter=True)
                 .where(Products.category_id == category_id)
             )
@@ -57,44 +41,121 @@ class ProductsDAO(BaseDAO):
             result = await session.execute(query)
             return result.mappings().all()
 
+
+
+
     @classmethod
-    async def get_products_in_category3(cls):
+    async def find_products_by_id(cls, id: int):
         async with async_session_maker() as session:
+
+            query = (
+            select(Products)
+                .options(
+                    joinedload(Products.product_attribute).joinedload(ProductAttributes.attribute_name),
+                    joinedload(Products.image)
+                    )
+                    .where(Products.id == id)
+            )           
+            result = await session.execute(query)    
+            result = result.scalar()
+
+            if result is None:
+                return None 
+
+            transform_result={
+                "id" : result.id,
+                "article" : result.article,
+                "category_id" : result.category_id,
+                "product_name": result.product_name,
+                "description" : result.description,
+                "price" : result.price,
+                "stock" : result.stock,
+                "product_attributes" : [],
+                "image_urls" : [],
+            }
+            for attr in result.product_attribute:
+                transform_result["product_attributes"].append({
+                    "attribute_name" : attr.attribute_name.attribute_name,
+                    "attribute.value" : attr.attribute_value,
+                })
+            for attr in result.image:
+                transform_result["image_urls"].append(attr.image_url)
+            return transform_result
+
+
+    @classmethod
+    async def test(cls, filters, category_id: int):
+        async with async_session_maker() as session:
+
+            attr = aliased(Attributes)
+            pr_attr = aliased(ProductAttributes)
+            im = aliased(ProductImages)
+            pr = aliased(Products)
             # Подзапрос для фильтрации изображений с logo = True
-            subquery = (
-                select(ProductImages)
+            subquery_pr_attr = (
+                select(
+                    pr_attr.product_id,
+                    attr.attribute_name,
+                    pr_attr.attribute_value,
+                )
+                .select_from(pr_attr)
+                .join(attr, pr_attr.attribute_name_id == attr.id, isouter=True)
+                .subquery("a")
+                
+            )
+            subquery_im = (
+                select(im.product_id, im.image_url)
                 .where(ProductImages.logo == True)
-                .subquery()
+                .subquery("im")
             )
+            print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            filters = jsonable_encoder(filters)
+            print(filters)
+#            filters = [
+#    {'attribute_name': 'Сорт', 'attribute_value': ["Экстра"]},
+#    {'attribute_name': 'Размер', 'attribute_value': ["40x40x3000 мм", "30x30x3000 мм"]},
+#    {'attribute_name': 'Материал', 'attribute_value': ["Сосна","Береза"]},
+#            ]
 
-            # Основной запрос с присоединением подзапроса
-            query = (
-                select(Products.article, Products.product_name)
-                .join(subquery, Products.id == subquery.c.product_id, isouter=True)
-                .options(contains_eager(Products.image, alias=subquery))
-                .where(Products.category_id == 25)
+            filter_conditions = []
+            for filter_item in filters:
+                attribute_name = filter_item['attribute_name']
+                attribute_values = filter_item['attribute_value']
+                condition = and_(
+                    subquery_pr_attr.c.attribute_name == attribute_name,
+                    subquery_pr_attr.c.attribute_value.in_(attribute_values)
+                )
+                filter_conditions.append(condition)
+
+            subquery_pr = (
+                select(
+                    subquery_pr_attr.c.product_id,
+                    func.count(subquery_pr_attr.c.product_id).label('count_product')
+                    )
+                .select_from(pr)
+                .join(subquery_pr_attr, pr.id == subquery_pr_attr.c.product_id)
+                .filter(or_(*filter_conditions))
+                .group_by(subquery_pr_attr.c.product_id,)
+                .having(subquery_pr_attr.c.product_id == len(filters)).subquery("find_pr")
+                )
+            
+            query=(
+                select(
+                    Products.id, 
+                    Products.article, 
+                    Products.category_id, 
+                    Products.product_name, 
+                    Products.description, 
+                    Products.price, 
+                    Products.stock, 
+                    subquery_im.c.image_url,
+                )
+                .join(subquery_pr, Products.id == subquery_pr.c.product_id)
+                .join(subquery_im, Products.id == subquery_im.c.product_id, isouter=True)
+                .where(Products.category_id == category_id)         
             )
+  
 
+            print(query.compile(compile_kwargs={"literal_binds": True}))
             result = await session.execute(query)
-            return result.all()
-
-    @classmethod
-    async def get_products_in_category4(cls):
-        async with async_session_maker() as session:
-            # Подзапрос для фильтрации изображений с logo = True
-            subquery = (
-                select(ProductImages)
-                #.where(ProductImages.logo == True)
-                .subquery()
-            )
-            cte=(select(Products.id,Products.product_name, Products.image).filter_by(category_id=25)).cte("products_filtered")
-
-            # Основной запрос с присоединением подзапроса
-            query = (
-            select(cte.c.id, cte.c.product_name, subquery.c.image_url)
-            .outerjoin(subquery, cte.c.id == subquery.c.product_id)
-            )
-
-
-            result = await session.execute(query)
-            return result.mappings().unique().all()
+            return result.mappings().all()

@@ -6,3 +6,4 @@ app/migrations/versions/
 app/migrations/README
 app/migrations/script.py.mako
 11.html
+test.py
