@@ -19,7 +19,7 @@ class Products(Base):
 
     category = relationship("Categories", back_populates="products")
     product_attribute = relationship("ProductAttributes", back_populates="product", cascade="all, delete-orphan")
-    image = relationship("ProductImages", back_populates="product", cascade="all, delete-orphan")
+    image = relationship("ProductImages", back_populates="product", cascade="all, delete-orphan", order_by="ProductImages.logo.desc()")
     orderitem = relationship("OrderItems", back_populates='product')
 
    

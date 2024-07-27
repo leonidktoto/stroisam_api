@@ -1,19 +1,20 @@
 from typing import List
 from fastapi import APIRouter
 from app.catalog.categories.dao import CategoriesDAO
-from app.catalog.categories.schemas import SCategories
+from app.catalog.categories.schemas import SCategories, SCategoriesWithChldrn
 
 router=APIRouter(
     prefix="/categories",
     tags=["Категории товаров"]
 )
 
-@router.get("/main", response_model=list[SCategories])
+@router.get("/main", response_model=list[SCategoriesWithChldrn])
 async def get_main_categories():
-    main_catalog = await CategoriesDAO.find_all(parent_id=None)
+    main_catalog = await CategoriesDAO.find_subcategory(None)
     return main_catalog
 
-@router.get("/sub/{parent_id}", response_model=list[SCategories])
+
+@router.get("/sub/{parent_id}", response_model=list[SCategoriesWithChldrn] )
 async def get_subcategories(parent_id: int):
-    main_catalog = await CategoriesDAO.find_all(parent_id=parent_id)
+    main_catalog = await CategoriesDAO.find_subcategory(parent_id)
     return main_catalog
