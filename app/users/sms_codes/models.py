@@ -6,7 +6,7 @@ from starlette.requests import Request
 from datetime import datetime
 
 created_at =Annotated[datetime, mapped_column(server_default=text("TIMEZONE('utc', now())"))]
-expires_at=Annotated[datetime, mapped_column(server_default=text("TIMEZONE('utc', now())+ interval '5 minutes'"))]
+expires_at=Annotated[datetime, mapped_column(server_default=text("TIMEZONE('utc', now())+ interval '10 minutes'"))]
 
 class SmsCodes(Base):
     __tablename__="smscodes"
