@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
 
 from app.catalog.attributes.models import Attributes
@@ -16,6 +17,7 @@ from app.catalog.categories.models import Categories
 from app.catalog.products.models import Products
 from app.catalog.product_images.models import ProductImages
 from app.adminpanel.viewstarlette import AttributesView, CategoriesView, OrderItemsView, OrdersView, ProductAttributesView, ProductImagesView, ProductsView, SmsCodesView, TypeUserView, UsersView
+from app.exceptions import BookingException
 from app.orders.models import Orders
 from app.orders.order_items.models import OrderItems
 from app.users.models import Users
@@ -24,6 +26,7 @@ from app.users.type_user.models import TypeUser
 
 from app.catalog.categories.router import router as router_categories
 from app.catalog.products.router import router as router_products
+from app.users.router import router as router_users
 
 
 
@@ -31,6 +34,8 @@ from app.catalog.products.router import router as router_products
 # Создаем приложение FastAPI
 app = FastAPI()
 
+
+app.include_router(router_users)
 app.include_router(router_categories)
 app.include_router(router_products)
 

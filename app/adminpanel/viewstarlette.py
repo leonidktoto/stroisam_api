@@ -17,6 +17,7 @@ from app.catalog.products.models import Products
 from starlette_admin import IntegerField, StringField, HasOne, HasMany,BooleanField
 
 from app.orders.models import OrderStatus, Orders
+from app.users.models import Users
 from app.users.sms_codes.models import SmsCodes
 from app.users.type_user.models import TypeUser
 
@@ -230,11 +231,7 @@ class UsersView(CustomModelView):
         EmailField(
             name="email",
             label="Электронная почта",
-        ),
-        PasswordField(
-            name="hashed_password",
-            label="ID",
-        ),     
+        ),    
         IntegerField(
             name="discount",
             label="Персональная скидка",
@@ -257,7 +254,8 @@ class UsersView(CustomModelView):
             label="Попыток регистрации",
         )
     ]
-
+    exclude_fields_from_create = [Users.hashed_password]
+    exclude_fields_from_edit =[Users.hashed_password]
 
 class TypeUserView(CustomModelView):
     name='тип пользоватяля'
