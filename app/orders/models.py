@@ -10,10 +10,14 @@ from app.orders.order_items.models import OrderItems
 order_date =Annotated[datetime, mapped_column(server_default=text("TIMEZONE('utc', now())"))]
 
 class OrderStatus(Enum):
-    CREATED = "CREATED"
-    PROCESSING = "PROCESSING"
-    COMPLETED = "COMPLETED"
-    CANCELED = "CANCELED"
+    CREATED = "CREATED"                         # Создан
+    PROCESSING = "PROCESSING"                   # В обработке
+    OPERATOR_PROCESSED = "OPERATOR_PROCESSED"   # Обработан оператором
+    CONFIRMED = "CONFIRMED"                     # Подтвержден
+    AWAITING_PAYMENT = "AWAITING_PAYMENT"       # Ожидает оплату
+    PAID = "PAID"                               # Оплачен
+    COMPLETED = "COMPLETED"                     # Завершен
+    CANCELED = "CANCELED"                       # Отменен
 
 
 
