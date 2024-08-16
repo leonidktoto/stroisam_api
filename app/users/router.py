@@ -1,43 +1,63 @@
 from datetime import datetime, timedelta, timezone
+from sys import exception
 from typing import Annotated, Optional
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Form, Query, Security
 from pydantic import BaseModel, EmailStr
 from pydantic.json_schema import SkipJsonSchema
 import random
-
+from jwt.exceptions import InvalidTokenError
 from smsaero import SmsAeroException
 
+from app.config import Settings_env
 from app.sms_aero import send_sms_api
+from app.users.auth import decode_jwt, encode_jwt
 from app.users.dao import UsersDAO
 from app.users.models import Users
-from app.exceptions import IncorrectSmsValidationException, SmsValidationExpired, UserAlreadyExistsException, UserIsBlocked, UserIsNotRegisteredException 
-from app.users.auth import  send_sms
+from app.exceptions import (
+    UserAlreadyExistsException, 
+    UserInActive, 
+    UserIsBlocked, 
+    UserIsNotRegisteredException) 
+
+from app.users.schemas import STokenInfo, SUserAuth, SUsers
 from app.users.sms_codes.dao import SmsCodesDAO
 from app.users.sms_codes.models import SmsCodes
 
+from fastapi.security import (
+    HTTPBearer, 
+    HTTPAuthorizationCredentials, 
+    OAuth2PasswordBearer
+    )
+from app.users.token import create_access_token, create_refresh_token
+from app.users.validation import (
+    get_current_active_auth_user, 
+    get_current_token_payload, 
+    validate_auth_user, 
+    get_current_auth_user_refresh
+    )
+
+
+http_bearer = HTTPBearer(auto_error=False)
 
 
 router=APIRouter(
-    prefix="/Users",
-    tags=["Auth & Пользователи"]
+    prefix="/users",
+    tags=["Auth & Пользователи"],
+    dependencies=[Depends(http_bearer)]
 )
 
 
 
 
-class SRegisterUser(BaseModel):
 
-    first_name: int
-    last_name: int | None
-    phone: int
-    email: EmailStr
 
 def generate_sms_code():
     return str(random.randint(100000, 999999))
 
 
 
-@router.get("/register")
+
+@router.post("/register")
 async def register_user(
     first_name: Annotated[str, Query(max_length=15)],
     email: EmailStr,
@@ -50,7 +70,7 @@ async def register_user(
     await UsersDAO.add_data(first_name=first_name, last_name=last_name, phone=phone, email=email)
 
 
-@router.get("/sms_verification")
+@router.get("/sms_verification") #Переписать!!! Разделить на функции, добавить else latest_sms_code
 async def sms_verification(
     phone: Annotated[str, Query(regex=r'^\d{10}$', description="Номер телефона (ровно 10 цифр)", title='Строка')]):
     
@@ -89,36 +109,31 @@ async def sms_verification(
                 print(f"An error occurred: {e}")
 
 
-
-            
-
-
-
-
-
-
-@router.get("/login")
+@router.post("/login/", response_model=STokenInfo)
 async def login(
-    phone: Annotated[str, Query(regex=r'^\d{10}$', description="Номер телефона (ровно 10 цифр)", title='Строка')],
-    sms: Annotated[str, Query(max_length=8)]):
+    user: SUserAuth = Depends(validate_auth_user) ):
+    access_token = create_access_token(user)
+    refresh_token = create_refresh_token(user)
+    return STokenInfo(
+        access_token = access_token,
+        refresh_token = refresh_token
+    )
 
-    user: Optional[Users] = await UsersDAO.find_one_or_none(phone=phone)
-    if not user:
-        raise UserIsNotRegisteredException
+@router.post("/refresh/")# response_model = STokenInfo, response_model_exclude_none=True)
+def auth_refresh_jwt(
+    user: SUsers = Depends(get_current_auth_user_refresh)
+):
+    access_token = create_access_token(user)
+    return STokenInfo(
+        access_token=access_token
+    )
 
-    sms_code: Optional[SmsCodes] = await SmsCodesDAO.last_sms_code(user_id=user.id)
-    
-    if sms_code:
-        if sms_code.code!=sms:
-            raise IncorrectSmsValidationException
 
-        current_utc_time=datetime.now(timezone.utc) #Текущее время в UTC
-        expires_at_utc = sms_code.expires_at.replace(tzinfo=timezone.utc) #Добавляем временную зону к полученному времени
-        if expires_at_utc<current_utc_time:
-            raise SmsValidationExpired
-        
-        await SmsCodesDAO.update_data(id=sms_code.id, is_used=True)
-        #выдать токен
-        #Обнулить попытки захода
-
-        
+@router.get("/users/me/", response_model=SUserAuth)
+def auth_user_check_self_info(
+    payload: dict = Depends(get_current_token_payload),
+    user: SUsers = Depends(get_current_active_auth_user)
+):
+    iat=payload.get("iat")
+    print(iat)
+    return user

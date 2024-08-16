@@ -1,85 +1,69 @@
 from fastapi import HTTPException, status
 
 
-class BookingException(HTTPException):
-    status_code = 500
-    detail = ""
-
-    def __init__(self):
-        super().__init__(status_code=self.status_code, detail=self.detail)
-
-
-
-class UserIsNotRegisteredException(BookingException):
-    status_code = status.HTTP_409_CONFLICT
-    detail = "Пользователь не зарегистрирован"
+class UserIsNotRegisteredException(HTTPException):
+    def __init__(self, detail: str = "Пользователь не зарегистрирован"):
+        super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
 
     
-class UserAlreadyExistsException(BookingException):
-    status_code = status.HTTP_409_CONFLICT
-    detail = "Пользователь уже существует"
+class UserAlreadyExistsException(HTTPException):
+    def __init__(self, detail: str = "Пользователь уже существует"):
+        super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
 
-class UserIsBlocked(BookingException):
-    status_code = status.HTTP_423_LOCKED
-    detail = "Пользователь временно заблокирован"
-
-class IncorrectSmsValidationException(BookingException):
-    status_code = status.HTTP_401_UNAUTHORIZED
-    detail = "Неверный код подтверждения"
-
-class SmsValidationExpired(BookingException):
-    status_code = status.HTTP_401_UNAUTHORIZED
-    detail = "Срок действия кода подтверждения истек"
-
-class TokenExpiredException(BookingException):
-    status_code = status.HTTP_401_UNAUTHORIZED
-    detail = "Срок действия токена истек"
+class UserIsBlocked(HTTPException):
+    def __init__(self, detail: str = "Пользователь временно заблокирован"):
+        super().__init__(status_code=status.HTTP_423_LOCKED, detail=detail)
 
 
-class TokenAbsentException(BookingException):
-    status_code = status.HTTP_401_UNAUTHORIZED
-    detail = "Токен отсутствует"
+class UserInActive(HTTPException):
+    def __init__(self, detail: str = "Пользователь не активен"):
+        super().__init__(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+
+class IncorrectSmsValidationException(HTTPException):
+    def __init__(self, detail: str = "Неверный код подтверждения"):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+
+class SmsValidationExpired(HTTPException):
+    def __init__(self, detail: str = "Срок действия кода подтверждения истек"):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+
+class TokenExpiredException(HTTPException):
+    def __init__(self, detail: str = "Срок действия токена истек"):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
 
 
-class IncorrectTokenFormatException(BookingException):
-    status_code = status.HTTP_401_UNAUTHORIZED
-    detail = "Неверный формат токена"
+class TokenAbsentException(HTTPException):
+    def __init__(self, detail: str = "Токен отсутствует"):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
 
 
-class UserIsNotPresentException(BookingException):
-    status_code = status.HTTP_401_UNAUTHORIZED
+class IncorrectTokenFormatException(HTTPException):
+    def __init__(self, detail: str = "Неверный формат токена"):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+
+class InvalidToken(HTTPException):
+    def __init__(self, detail: str = "Недействительный токен"):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+
+class InvalidTokenType(HTTPException):
+    def __init__(self, detail: str = "Неверный тип токена"):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+
+class UserIsNotPresentException(HTTPException):
+    def __init__(self, detail: str = ""):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+
+class CannotAddDataToDatabase(HTTPException):
+    def __init__(self, detail: str = "Не удалось добавить запись"):
+        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
 
-class RoomFullyBooked(BookingException):
-    status_code = status.HTTP_409_CONFLICT
-    detail = "Не осталось свободных номеров"
+class CannotDeleteFromDatabase(HTTPException):
+    def __init__(self, detail: str = "Не удалось удалить запись"):
+        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
 
-class RoomCannotBeBooked(BookingException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    detail = "Не удалось забронировать номер ввиду неизвестной ошибки"
 
-
-class DateFromCannotBeAfterDateTo(BookingException):
-    status_code = status.HTTP_400_BAD_REQUEST
-    detail = "Дата заезда не может быть позже даты выезда"
-
-
-class CannotBookHotelForLongPeriod(BookingException):
-    status_code = status.HTTP_400_BAD_REQUEST
-    detail = "Невозможно забронировать отель сроком более месяца"
-
-
-class CannotAddDataToDatabase(BookingException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    detail = "Не удалось добавить запись"
-
-
-class CannotDeleteFromDatabase(BookingException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    detail = "Не удалось удалить запись"
-
-
-class CannotProcessCSV(BookingException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    detail = "Не удалось обработать CSV файл"
+class CannotProcessCSV(HTTPException):
+    def __init__(self, detail: str = "Не удалось обработать CSV файл"):
+        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)

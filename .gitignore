@@ -9,3 +9,4 @@ app/migrations/script.py.mako
 test.py
 testsms.py
 sms_aero.py
+certs/

@@ -1,41 +1,20 @@
-from fastapi import FastAPI
-#from app.nomenclature.categories.router import router as router_categories
-#from app.nomenclature.products.router import router as router_products
-##from app.nomenclature.products.product_attribute.router import router as router_attribute
-#from app.nomenclature.products.product_image.router import router as router_image
-#from sqladmin import Admin
-#from app.database import async_engine 
-#from app.adminpanel.view import CategoriesAdmin, ProductsAdmin
-
-
-from flask import Flask
-from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
-from starlette.middleware.wsgi import WSGIMiddleware
-#from app.adminpanel.viewflask import CategoriesAdmin, ProductsAdmin
-#from app.nomenclature.categories.models import Categories
-#from app.nomenclature.products.models import Products
-from app.database import sync_session
-# Создаем приложение Flask для Flask-Admin
-flask_app = Flask(__name__)
-flask_app.secret_key = "supersecretkey"
-
-# Настраиваем Flask-Admin
-admin = Admin(app=flask_app, name='Admin Panel')
-#admin.add_view(CategoriesAdmin(Categories, sync_session(), name="Категории"))
-#admin.add_view(ProductsAdmin(Products, sync_session(),name="Товары"))
+from app.create_fastapi_app import create_app
+from app.create_starlette_admin import create_admin
+from app.catalog.categories.router import router as router_categories
+from app.catalog.products.router import router as router_products
+from app.users.router import router as router_users
 
 # Создаем приложение FastAPI
-app = FastAPI()
+app = create_app(create_custom_static_urls=True)
+prefix="/api"
 
-# Интегрируем Flask приложение с FastAPI
-app.mount("/", WSGIMiddleware(flask_app))
+#Подключаем роутеры
+app.include_router(router_users, prefix=prefix)
+app.include_router(router_categories,prefix=prefix)
+app.include_router(router_products,prefix=prefix)
 
-#app.include_router(router_categories)
-#app.include_router(router_products)
-#app.include_router(router_attribute)
-#app.include_router(router_image)
+#Монтируем Starlette-admin в FastAPI
+admin=create_admin()
+admin.mount_to(app)
 
-#admin = Admin(app, async_engine)
-#admin.add_view(CategoriesAdmin)
-#admin.add_view(ProductsAdmin)
+
