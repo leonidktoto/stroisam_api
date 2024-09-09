@@ -41,7 +41,7 @@ async def validate_auth_user(
     if expires_at_utc<current_utc_time:
         raise SmsValidationExpired
         
-    await SmsCodesDAO.update_data(id=sms_code.id, is_used=True)
+    await SmsCodesDAO.update_data({"is_used":True}, id=sms_code.id)
     if not user.is_active:
         raise UserInActive
     #Обнулить попытки захода

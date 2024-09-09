@@ -5,6 +5,7 @@ from starlette_admin.contrib.sqla import Admin
 from app.adminpanel.provider import MyAuthProvider
 from app.adminpanel.viewstarlette import (
     AttributesView,
+    CartsView,
     CategoriesView,
     OrderItemsView,
     OrdersView,
@@ -14,6 +15,7 @@ from app.adminpanel.viewstarlette import (
     SmsCodesView,
     TypeUserView,
     UsersView)
+from app.carts.model import Carts
 from app.database import sync_engine
 from app.catalog.categories.models import Categories
 from app.catalog.products.models import Products
@@ -66,11 +68,13 @@ def create_admin() -> Admin:
             "Управление заказами",
             icon="fa fa-shopping-cart",
             views=[
+                CartsView(Carts),
                 OrdersView(Orders),
                 OrderItemsView(OrderItems),
             ],
         )
     )
     admin.add_view(SmsCodesView(SmsCodes, icon="fa-solid fa-sms"))
+
 
     return admin

@@ -19,6 +19,7 @@ from app.orders.order_items.models import OrderItems
 from app.users.models import Users
 from app.users.type_user.models import TypeUser
 from app.users.sms_codes.models import SmsCodes
+from app.carts.model import Carts
 
 sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
 

@@ -1,6 +1,7 @@
 from typing import Any, Dict
 from fastapi.background import P
 from jinja2 import Template
+from sqlalchemy.orm import session
 from starlette.requests import Request
 
 
@@ -8,6 +9,7 @@ from starlette_admin import BaseField, DateTimeField, EmailField, EnumField, Pas
 from starlette_admin.contrib.sqla import ModelView
 
 
+from app.carts.model import Carts
 from app.catalog.attributes.models import Attributes
 from app.catalog.categories.models import Categories 
 from app.catalog.product_attributes.models import ProductAttributes
@@ -17,9 +19,14 @@ from app.catalog.products.models import Products
 from starlette_admin import IntegerField, StringField, HasOne, HasMany,BooleanField
 
 from app.orders.models import OrderStatus, Orders
+from app.orders.order_items.models import OrderItems
 from app.users.models import Users
 from app.users.sms_codes.models import SmsCodes
 from app.users.type_user.models import TypeUser
+from sqlalchemy import String, cast, or_
+from sqlalchemy.orm import query
+from app.database import sync_session
+
 
 class CustomModelView(ModelView):
     column_visibility = True
@@ -27,6 +34,9 @@ class CustomModelView(ModelView):
     responsive_table = False
     save_state = True
 
+class UserPhoneField(StringField):
+    def get_value(self, instance):
+        return instance.user.phone if instance.user else None
 
 class CategoriesView(CustomModelView):  
     name='категорию'
@@ -156,7 +166,6 @@ class ProductsView(CustomModelView):
     exclude_fields_from_create = [Products.product_attribute, Products.image]
     exclude_fields_from_edit =[Products.product_attribute, Products.image]
 
-    
 
 
 class AttributesView(CustomModelView):
@@ -280,6 +289,54 @@ class TypeUserView(CustomModelView):
     exclude_fields_from_create = [TypeUser.user]
     exclude_fields_from_edit =[TypeUser.user]
 
+class CartsView(CustomModelView):
+    name='В корзину'
+    label='Корзина'
+
+    fields=[
+        IntegerField(
+            name="id",
+            label="ID",
+        ),
+        HasOne(
+            name="product",
+            label="Товар",
+            identity="products"
+        ),
+        IntegerField(
+            name="quantity",
+            label="Количество"
+        ),
+        IntegerField(
+            name="price",
+            label="Цена (за шт.)",
+        ),
+        IntegerField(
+            name="sum_price",
+            label="Цена (всего)",
+        ),
+        #HasOne(
+        #    name="user",
+        #    label="Пользователь",
+        #    identity="users"
+        #),
+        #UserPhoneField(
+        #    name="user.phone", 
+        #    label="Телефон пользователя",
+        #    searchable=True,
+        #),
+        Carts.user,
+    ]
+
+
+    exclude_fields_from_create = [Carts.sum_price]
+    exclude_fields_from_edit =[Carts.sum_price]
+
+    def get_search_query(self, request: Request, term: str):
+        return Carts.user.has(Users.phone.ilike(f"%{term}%"))
+
+   
+
 class OrdersView(CustomModelView):
     name='заказ'
     label='Заказы'
@@ -315,8 +372,20 @@ class OrdersView(CustomModelView):
         )
     ]
 
-    exclude_fields_from_create = [Orders.order_date, Orders.order_status, Orders.total_amount]
+    exclude_fields_from_create = [Orders.order_date, Orders.order_status, Orders.total_amount, Orders.orderitem]
     exclude_fields_from_edit =[Orders.order_date, Orders.total_amount]
+
+    def get_search_query(self, request: Request, term: str):
+        clauses = []
+        clauses.append(cast(Orders.order_status, String).like(f"%{str(term).upper()}%"))
+
+        user_phone_clause = (
+            Orders.user.has(Users.phone.ilike(f"%{term}%"))
+        )
+        clauses.append(user_phone_clause)
+        return or_(*clauses)
+
+
 
 class OrderItemsView(CustomModelView):
     name = "в заказ"
@@ -343,10 +412,18 @@ class OrderItemsView(CustomModelView):
         ),
         IntegerField(
             name="price",
-            label="Цена",
+            label="Цена (за шт.)",
+        ),
+        IntegerField(
+            name="sum_price",
+            label="Цена (всего)",
         ),
     ]
+    exclude_fields_from_create = [OrderItems.sum_price]
+    exclude_fields_from_edit =[OrderItems.sum_price]
 
+    def get_search_query(self, request: Request, term: str):
+        return OrderItems.order.has(Orders.id == term)
 
 class SmsCodesView(CustomModelView):
     name="SMS код"

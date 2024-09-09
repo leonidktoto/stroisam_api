@@ -1,39 +1,33 @@
 from datetime import datetime, timedelta, timezone
-from sys import exception
 from typing import Annotated, Optional
-from fastapi import APIRouter, Depends, Form, Query, Security
-from pydantic import BaseModel, EmailStr
+from fastapi import APIRouter, Depends, Query
+from pydantic import EmailStr
 from pydantic.json_schema import SkipJsonSchema
 import random
-from jwt.exceptions import InvalidTokenError
 from smsaero import SmsAeroException
 
-from app.config import Settings_env
 from app.sms_aero import send_sms_api
-from app.users.auth import decode_jwt, encode_jwt
 from app.users.dao import UsersDAO
 from app.users.models import Users
 from app.exceptions import (
     UserAlreadyExistsException, 
-    UserInActive, 
     UserIsBlocked, 
-    UserIsNotRegisteredException) 
+    UserIsNotRegisteredException,
+    ) 
 
 from app.users.schemas import STokenInfo, SUserAuth, SUsers
 from app.users.sms_codes.dao import SmsCodesDAO
 from app.users.sms_codes.models import SmsCodes
 
 from fastapi.security import (
-    HTTPBearer, 
-    HTTPAuthorizationCredentials, 
-    OAuth2PasswordBearer
+    HTTPBearer,
     )
 from app.users.token import create_access_token, create_refresh_token
 from app.users.validation import (
     get_current_active_auth_user, 
     get_current_token_payload, 
     validate_auth_user, 
-    get_current_auth_user_refresh
+    get_current_auth_user_refresh,
     )
 
 
@@ -74,11 +68,11 @@ async def register_user(
 async def sms_verification(
     phone: Annotated[str, Query(regex=r'^\d{10}$', description="Номер телефона (ровно 10 цифр)", title='Строка')]):
     
-    user: Optional[Users] = await UsersDAO.find_one_or_none(phone=phone)
+    user = await UsersDAO.find_one_or_none(phone=phone)
     if not user:
         raise UserIsNotRegisteredException
     
-    latest_smscode: Optional[SmsCodes] = await SmsCodesDAO.last_sms_code(user_id=user.id)
+    latest_smscode = await SmsCodesDAO.last_sms_code(user_id=user.id)
 
     if latest_smscode:
         current_utc_time=datetime.now(timezone.utc) #Текущее время в UTC
@@ -129,7 +123,7 @@ def auth_refresh_jwt(
     )
 
 
-@router.get("/users/me/", response_model=SUserAuth)
+@router.get("/me/", response_model=SUserAuth)
 def auth_user_check_self_info(
     payload: dict = Depends(get_current_token_payload),
     user: SUsers = Depends(get_current_active_auth_user)
