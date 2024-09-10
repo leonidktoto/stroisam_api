@@ -21,7 +21,7 @@ async def get_products_by_category_id(category_id: int):
     result = await ProductsDAO.find_products_by_category_id(category_id=category_id)
     return result
 
-@router.get("/id/{id}", response_model=SProductsWithAttr)
+@router.get("/id/{id}", response_model=SProductsWithAttr | None)
 async def get_products_by_id(id:int):
     result = await ProductsDAO.find_products_by_id(id)
     return result

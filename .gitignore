@@ -10,3 +10,4 @@ test.py
 testsms.py
 sms_aero.py
 certs/
+.vscode
