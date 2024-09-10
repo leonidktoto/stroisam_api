@@ -57,6 +57,10 @@ class CannotAddDataToDatabase(HTTPException):
     def __init__(self, detail: str = "Не удалось добавить запись"):
         super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
+class CannotAddUpdateDatabase(HTTPException):
+    def __init__(self, detail: str = "Не удалось обновить запись"):
+        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+
 
 class CannotDeleteFromDatabase(HTTPException):
     def __init__(self, detail: str = "Не удалось удалить запись"):
@@ -67,3 +71,8 @@ class CannotDeleteFromDatabase(HTTPException):
 class CannotProcessCSV(HTTPException):
     def __init__(self, detail: str = "Не удалось обработать CSV файл"):
         super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+
+
+class CartIsEmpty(HTTPException):
+    def __init__(self, detail: str = "Корзина пуста, не возможно создать заказ"):
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)

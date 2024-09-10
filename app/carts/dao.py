@@ -10,10 +10,14 @@ class CartsDAO(BaseDAO):
     model = Carts
 
     @classmethod
-    async def get_user_cart(cls, id):
+    async def get_user_cart(cls, user_id):
         async with async_session_maker() as session:
-            query = select(
-                Carts).options(joinedload(Carts.product)).where(Carts.user_id == id)
+            query = (
+                select(Carts)
+                .options(joinedload(Carts.product))
+                .where(Carts.user_id == user_id)
+                .order_by(Carts.id.asc())
+                )
             result = await session.execute(query)
             result = result.scalars().all()
 
@@ -22,7 +26,8 @@ class CartsDAO(BaseDAO):
             transform_result = []
             for item in result:
                 product = {
-                    "product_id" : item.id,
+                    "id" : item.id,
+                    "product_id" : item.product_id,
                     "article" : item.product.article,
                     "product_name" : item.product.product_name,
                     "quantity" : item.quantity,

@@ -16,6 +16,7 @@ class SItemQuantityUpdate(BaseModel):
     quantity: int
 
 class SUserCart(BaseModel):
+    id: int
     product_id: int
     article: int
     product_name: str

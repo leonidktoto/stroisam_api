@@ -2,27 +2,19 @@ from fastapi import APIRouter, Depends, Response
 
 from app.carts.dao import CartsDAO
 from app.carts.model import Carts
-from app.carts.schemas import SItemProduct, SItemQuantityUpdate, SUserCart
+from app.carts.schemas import SItemProduct, SUserCart
 from app.catalog.products.dao import ProductsDAO
-from app.exceptions import CannotAddDataToDatabase
+from app.exceptions import CannotAddDataToDatabase, CannotAddUpdateDatabase
 from app.users.schemas import SUsers
 from app.users.validation import get_current_active_auth_user
 from app.users.router import http_bearer
 
 
 router=APIRouter(
-    prefix="/user/cart",
+    prefix="/users/cart",
     tags=["Корзина"],
     dependencies=[Depends(http_bearer)]
 )
-"""
-	•	POST /cart/{user_id} — Добавление товара в корзину пользователя.
-	•	GET /cart/{user_id} — Получение содержимого корзины.
-	•	POST /order/{user_id} — Создание заказа на основе содержимого корзины.
-	•	GET /order/{order_id} — Получение информации о заказе.
-	•	DELETE /cart/{user_id}/item/{item_id} — Удаление товара из корзины.
-
-"""
 
 @router.get("/", response_model= list[SUserCart])
 async def get_cart_contents(
@@ -43,36 +35,73 @@ async def add_item_to_cart(
     
     #Проверяем если есть в корзине то обновляем количество и цену товара, если нет добавляем товар.
     product_in_cart = await CartsDAO.find_one_or_none(product_id=items.product_id, user_id=user.id)
-    if product_in_cart: 
-         await CartsDAO.update_data(
+    if product_in_cart:
+        quantity = items.quantity+product_in_cart.quantity 
+        await CartsDAO.update_data(
             {
-                "quantity":items.quantity+product_in_cart.quantity,
+                "quantity":quantity,
                 "price":product.price,
             },
             product_id=items.product_id, 
             user_id=user.id,
             )
+        message = "Обновлено количество товара в корзине"
+
     else:
+        quantity = items.quantity
         await CartsDAO.add_data(
             product_id = product.id, 
-            quantity = items.quantity,
+            quantity = quantity,
             price = product.price,
-            user_id = user.id)
-        
-    return Response(status_code=200)
+            user_id = user.id
+            )
+        message = "Товар добавлен в корзину"
 
-@router.patch("/items/{item_id}")
+    return {
+        "message": message, 
+        "product_id": items.product_id, 
+        "quantity": quantity
+        }
+
+@router.patch("/items")
 async def partial_update_item(
-    item_id: int, 
-    quantity: SItemQuantityUpdate,
+    items: SItemProduct,
     user: SUsers = Depends(get_current_active_auth_user),
     ):
-    # Логика частичного обновления товара
-    return {"message": f"Item partially updated {quantity} "}
+    product = await ProductsDAO.find_one_or_none(id=items.product_id)
+    if not product:
+        raise CannotAddDataToDatabase
+    product_in_cart = await CartsDAO.find_one_or_none(product_id=items.product_id, user_id=user.id)
 
-@router.delete("/items/{item_id}")
+    if not product_in_cart:
+        raise CannotAddUpdateDatabase
+
+    await CartsDAO.update_data(
+            {
+                "quantity":items.quantity,
+                "price":product.price,
+            },
+            product_id=items.product_id, 
+            user_id=user.id,
+            )
+    
+    return {
+        "message": "Обновлено количество товара в корзине", 
+        "product_id": items.product_id, 
+        "quantity": items.quantity
+        }
+
+@router.delete("/items/{id}")
 async def remove_item_from_cart(
-    item_id: int,
+    id: int,
     user: SUsers = Depends(get_current_active_auth_user),
     ):
-    return {"message": f"Deleted items {item_id} "}
+    await CartsDAO.delete_by_filter(id=id, user_id=user.id)
+    return Response(status_code=204)
+
+@router.delete("/items")
+async def clear_cart(
+    user: SUsers = Depends(get_current_active_auth_user),
+    ):
+    await CartsDAO.delete_by_filter(user_id=user.id)
+    return Response(status_code=204)

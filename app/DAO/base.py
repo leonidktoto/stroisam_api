@@ -36,7 +36,7 @@ class BaseDAO:
             return result.mappings().all()[0]
 
     @classmethod
-    async def delete_by_id(cls, **filter_by):
+    async def delete_by_filter(cls, **filter_by):
         async with async_session_maker() as session:
             query = delete(cls.model.__table__).filter_by(**filter_by)
             result = await session.execute(query)
