@@ -9,6 +9,7 @@ from app.orders.dao import OrdersDAO
 from app.orders.models import OrderStatus
 from app.orders.order_items.dao import OrdersItemsDAO
 from app.orders.order_items.models import OrderItems
+from app.orders.order_items.schemas import SOrderItems
 from app.orders.schemas import SOrdersWithoutUserId
 from app.users.schemas import SUsers
 from app.users.validation import get_current_active_auth_user
@@ -57,7 +58,7 @@ async def create_order(
     return {"message": "Заказ создан", "order_id": order_id["id"]}
 
         
-@router.get("/{order_id}")
+@router.get("/{order_id}", response_model=SOrderItems)
 async def get_order_detail(
     order_id: int,
     user: SUsers = Depends(get_current_active_auth_user),       
@@ -66,7 +67,7 @@ async def get_order_detail(
         raise OrderNumError
     return await OrdersItemsDAO.detail_order(order_id=order_id)
 
-@router.post("/{order_id}/cancel")
+@router.post("/{order_id}/cancel", response_model=SOrdersWithoutUserId)
 async def cancel_order(
     order_id: int,
     user: SUsers = Depends(get_current_active_auth_user),       
