@@ -16,5 +16,5 @@ async def get_main_categories():
 
 @router.get("/sub/{parent_id}", response_model=list[SCategoriesWithChldrn] )
 async def get_subcategories(parent_id: int):
-    main_catalog = await CategoriesDAO.find_subcategory(parent_id)
-    return main_catalog
+    catalog = await CategoriesDAO.find_subcategory(parent_id)
+    return catalog

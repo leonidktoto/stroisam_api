@@ -11,5 +11,5 @@ class SCategories(BaseModel):
         from_attributes = True
 
 class SCategoriesWithChldrn(SCategories):
-    children_id: List[int] | None
+    has_children: bool
     
