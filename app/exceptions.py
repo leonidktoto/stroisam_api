@@ -76,3 +76,11 @@ class CannotProcessCSV(HTTPException):
 class CartIsEmpty(HTTPException):
     def __init__(self, detail: str = "Корзина пуста, не возможно создать заказ"):
         super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+
+class OrderNumError(HTTPException):
+    def __init__(self, detail: str = "Ошибка номера заказа"):
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+
+class OrderNotCanceled(HTTPException):
+    def __init__(self, detail: str = "Заказ не может быть отменен"):
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)

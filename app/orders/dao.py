@@ -1,7 +1,10 @@
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from app.DAO.base import BaseDAO
+from app.carts.model import Carts
 from app.orders.models import Orders
 from app.database import async_session_maker
+from app.orders.order_items.models import OrderItems
 
 
 class OrdersDAO(BaseDAO):
@@ -25,6 +28,4 @@ class OrdersDAO(BaseDAO):
                 query = query.where(Orders.order_status == status)
             result = await session.execute(query)    
             return result.scalars().all()
-        
-
         
