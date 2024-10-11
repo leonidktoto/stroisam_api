@@ -19,7 +19,7 @@ from app.users.router import http_bearer
 router=APIRouter(
     prefix="/users/orders",
     tags=["Заказы"],
-    dependencies=[Depends(http_bearer)]
+    #dependencies=[Depends(http_bearer)]
 )
 
 @router.get("", response_model = list[SOrdersWithoutUserId])

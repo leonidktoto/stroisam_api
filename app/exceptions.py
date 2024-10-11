@@ -18,6 +18,10 @@ class UserIsBlocked(HTTPException):
 class UserInActive(HTTPException):
     def __init__(self, detail: str = "Пользователь не активен"):
         super().__init__(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+        
+class UserNotAdmin(HTTPException):
+    def __init__(self, detail: str = "Пользователь не администратор"):
+        super().__init__(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
 
 class IncorrectSmsValidationException(HTTPException):
     def __init__(self, detail: str = "Неверный код подтверждения"):

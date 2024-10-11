@@ -13,10 +13,10 @@ from app.users.router import http_bearer
 router=APIRouter(
     prefix="/users/cart",
     tags=["Корзина"],
-    dependencies=[Depends(http_bearer)]
+    #dependencies=[Depends(http_bearer)]
 )
 
-@router.get("/", response_model= list[SUserCart])
+@router.get("/", response_model= list[SUserCart] | None)
 async def get_cart_contents(
     user: SUsers = Depends(get_current_active_auth_user),
     ):

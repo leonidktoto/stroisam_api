@@ -352,7 +352,11 @@ class OrdersView(CustomModelView):
         ),
         IntegerField(
             name="total_amount",
-            label="Сумма заказа"
+            label="Сумма заказа"     
+        ),
+        StringField(
+            name="delivery_address",
+            label="Адрес доставки",
         ),
         EnumField(
             name="order_status",

@@ -1,3 +1,4 @@
+from fastapi import Response
 from app.users.schemas import SUsers
 from app.config import settings
 from app.users import auth
@@ -45,3 +46,19 @@ def create_refresh_token(user: SUsers) -> str:
         token_data = jwt_payload, 
         expire_timedelta = timedelta(days=settings.AUTHJWT.refresh_token_expire_days)
         )
+
+def auth_user_set_cookie(response: Response, token_type: str, token: str):
+
+    max_age = 0
+    if token_type == ACCESS_TOKEN_TYPE:
+        max_age = settings.AUTHJWT.access_token_expire_minutes*60
+    if token_type == REFRESH_TOKEN_TYPE:
+        max_age = settings.AUTHJWT.access_token_expire_minutes*1440*60
+
+    response.set_cookie(
+        token_type, 
+        token, 
+        httponly = True, 
+        max_age = max_age
+    )
+

@@ -28,4 +28,4 @@ services:
     container_name: redis_ssam
     image: redis:latest
     ports:
-      - "127.0.0.1:6380:6379"  # Измените порт хоста на 6380
+      - "127.0.0.1:6379:6379"  # Измените порт хоста на 6380

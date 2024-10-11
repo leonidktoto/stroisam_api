@@ -71,7 +71,7 @@
             const username = document.getElementById('username').value;
             if (username) {
                 const baseUrl = "{{ request.base_url }}";  // Получаем базовый URL из объекта request
-                const url = `${baseUrl}Users/sms_verification?phone=${encodeURIComponent(username)}`;
+                const url = `${baseUrl}api/users/sms_verification?phone=${encodeURIComponent(username)}`;
                 fetch(url)
                     .then(response => {
                         if (response.ok) {

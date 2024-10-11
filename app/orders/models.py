@@ -27,6 +27,7 @@ class Orders(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     order_date: Mapped[order_date]
     total_amount: Mapped[int] = mapped_column(nullable=True)
+    delivery_address: Mapped[str] = mapped_column(nullable=True) 
     order_status: Mapped[OrderStatus] = mapped_column(nullable=False , server_default="CREATED")
 
     user=relationship("Users", back_populates="orders")

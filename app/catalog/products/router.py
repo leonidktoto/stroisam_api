@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from app.catalog.products.dao import ProductsDAO
 from app.catalog.products.schemas import  SProduct, SProductsWithAttr
+from fastapi_cache.decorator import cache
 
 
 router=APIRouter(
@@ -17,6 +18,7 @@ class FilterProduct(BaseModel):
 
 
 @router.get("/category/{category_id}" , response_model=list[SProduct])
+@cache(expire=60)
 async def get_products_by_category_id(category_id: int):
     result = await ProductsDAO.find_products_by_category_id(category_id=category_id)
     return result

@@ -29,4 +29,4 @@ class SRegisterUser(BaseModel):
 class STokenInfo(BaseModel):
     access_token: str
     refresh_token: str | None = None
-    token_type: str = "Bearer"
+    #token_type: str = "Bearer"

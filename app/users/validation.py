@@ -1,10 +1,10 @@
 
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 from jwt import InvalidTokenError
-from app.exceptions import IncorrectSmsValidationException, IncorrectTokenFormatException, InvalidToken, InvalidTokenType, SmsValidationExpired, UserInActive, UserIsNotRegisteredException
+from app.exceptions import IncorrectSmsValidationException, IncorrectTokenFormatException, InvalidToken, InvalidTokenType, SmsValidationExpired, TokenAbsentException, UserInActive, UserIsNotRegisteredException, UserNotAdmin
 from app.users import auth
 from app.users.schemas import SUserAuth, SUsers
 from app.users.models import Users
@@ -33,6 +33,7 @@ async def validate_auth_user(
        
     if not sms_code:
         raise IncorrectSmsValidationException
+        
     if sms_code.code!=password:
         raise IncorrectSmsValidationException
 
@@ -42,21 +43,30 @@ async def validate_auth_user(
         raise SmsValidationExpired
         
     await SmsCodesDAO.update_data({"is_used":True}, id=sms_code.id)
-    if not user.is_active:
-        raise UserInActive
-    #Обнулить попытки захода
+    await UsersDAO.update_data({"registration_attempts": 0}, id=user.id)
+
     return user
 
-def get_current_token_payload(
-    token: str = Depends(oauth2_scheme)
-) -> dict:
+# Изменяем функцию для получения токена из куки по типу токена (access или refresh)
+def get_token_from_request_by_type(request: Request, token_type: str) -> Optional[str]:
+    if token_type == ACCESS_TOKEN_TYPE:
+        return request.cookies.get(ACCESS_TOKEN_TYPE)
+    elif token_type == REFRESH_TOKEN_TYPE:
+        return request.cookies.get(REFRESH_TOKEN_TYPE)
+    return None
+
+# Получаем payload из токена в зависимости от типа
+def get_current_token_payload(request: Request, token_type: str) -> dict:
+    token = get_token_from_request_by_type(request, token_type)
+    if not token:
+        raise TokenAbsentException
     try:
         payload = auth.decode_jwt(token)
-    except InvalidTokenError as e:
+    except InvalidTokenError:
         raise IncorrectTokenFormatException
     return payload
 
-
+# Асинхронная функция для получения пользователя по sub из payload
 async def get_user_by_token_sub(payload: dict) -> SUserAuth:
     username: str | None = payload.get("sub")
     user: Optional[Users] = await UsersDAO.find_one_or_none(phone=username)
@@ -64,55 +74,45 @@ async def get_user_by_token_sub(payload: dict) -> SUserAuth:
         raise UserIsNotRegisteredException
     return user
 
-def validate_token_type(
-    payload: dict, 
-    token_type: str
-    ) -> bool:
-    curent_token_type=payload.get(TOKEN_TYPE_FIELD)
-    if payload.get(TOKEN_TYPE_FIELD) == token_type:
+# Валидация типа токена
+def validate_token_type(payload: dict, token_type: str) -> bool:
+    current_token_type = payload.get(TOKEN_TYPE_FIELD)
+    if current_token_type == token_type:
         return True
-    raise InvalidToken(detail=f"Неверный тип токена {curent_token_type!r} ожидал {token_type!r}")
+    raise InvalidToken(detail=f"Неверный тип токена {current_token_type!r}, ожидался {token_type!r}")
 
-class UserGetterFromToken:
-    def __init__(self, token_type: str):
-        self.token_type = token_type
-    def __call__(
-        self,
-        payload: dict = Depends(get_current_token_payload),
-    ):
-        validate_token_type(payload, self.token_type)
-        return get_user_by_token_sub(payload)
-
-
-
-async def get_current_auth_user_refresh(
-    payload: dict = Depends(get_current_token_payload),
-) -> SUsers:
-    validate_token_type(payload,REFRESH_TOKEN_TYPE)
-    return await get_user_by_token_sub(payload)
-
-
+# Фабричная функция для получения авторизованного пользователя по типу токена
 def get_auth_user_from_token_of_type(token_type: str):
     async def get_auth_user_from_token(
-        payload: dict = Depends(get_current_token_payload)
-        )-> SUsers:
+       # request: Request,  # Получаем объект Request напрямую
+        payload: dict = Depends(get_current_token_payload_with_type(token_type))  # Зависимость для токена
+    ) -> SUsers:
         validate_token_type(payload, token_type)
         return await get_user_by_token_sub(payload)
     return get_auth_user_from_token
 
+# Вспомогательная функция для передачи token_type через Depends
+def get_current_token_payload_with_type(token_type: str):
+    def _get_current_token_payload(request: Request):
+        return get_current_token_payload(request, token_type)
+    return _get_current_token_payload
 
+# Динамическое создание зависимостей для access и refresh токенов
 get_current_auth_user = get_auth_user_from_token_of_type(ACCESS_TOKEN_TYPE)
 get_current_auth_user_refresh = get_auth_user_from_token_of_type(REFRESH_TOKEN_TYPE)
 
-
+# Функция для получения текущего активного пользователя
 def get_current_active_auth_user(
     user: SUsers = Depends(get_current_auth_user)
- ):   
+):
     if user.is_active:
         return user
-    raise UserInActive 
+    raise UserInActive
 
-
-
-
-
+# Функция для проверки роли администратора
+def get_admin_active_auth_user(
+    user: SUsers = Depends(get_current_active_auth_user)
+):
+    if user.type_user_id == 2:
+        return user
+    raise UserNotAdmin

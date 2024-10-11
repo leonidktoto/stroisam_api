@@ -20,15 +20,30 @@ class Settings_env(BaseSettings):
     MODE: Literal["DEV", "TEST", "PROD"]
     LOG_LEVEL: Literal["DEBUG", "INFO"]
     
+    #DB
     DB_HOST: str
     DB_PORT: int
     DB_USER: str
     DB_PASS: str
     DB_NAME: str
 
+    #Yandex Object Storage
+    ENDPOINT_URL: str = 'https://storage.yandexcloud.net'
+    BUCKET_NAME: str
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+
+    #SMS
+    SMSAERO_EMAIL: str
+    SMSAERO_API_KEY: str
+    #
     SECRET_KEY: str
     ALGORITM: str
+
+    #JWT
     AUTHJWT: AuthJWT = AuthJWT()
+    #REDIS
+    REDIS_URL: str
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

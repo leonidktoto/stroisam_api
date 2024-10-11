@@ -1,7 +1,8 @@
+from jwt import InvalidTokenError
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, RedirectResponse, Response
 from starlette_admin.auth import AdminConfig, AdminUser, AuthProvider
-from starlette_admin.exceptions import FormValidationError, LoginFailed
+from starlette_admin.exceptions import FormValidationError, LoginFailed, StarletteAdminException
 
 from starlette.templating import Jinja2Templates
 from jinja2 import TemplateNotFound
@@ -13,31 +14,20 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
+from app.users import auth
+from app.users.schemas import SUsers
+from app.users.token import ACCESS_TOKEN_TYPE, REFRESH_TOKEN_TYPE, auth_user_set_cookie, create_access_token, create_refresh_token
+from app.users.validation import get_current_token_payload, get_user_by_token_sub, validate_auth_user, validate_token_type
+
 
 # Указываем путь к папке с шаблонами
-templates = Jinja2Templates(directory="app/adminpanel/templates")
+#templates = Jinja2Templates(directory="app/adminpanel/templates")
 
-users = {
-    "admin": {
-        "name": "Administrator",
-        "avatar": "avatar.png",
-        "company_logo_url": "avatar.png",
-        "roles": ["read", "create", "edit", "delete", "action_make_published"],
-    },
-    "johndoe": {
-        "name": "John Doe",
-        "avatar": None,  # user avatar is optional
-        "roles": ["read", "create", "edit", "action_make_published"],
-    },
-    "viewer": {"name": "Viewer", "avatar": None, "roles": ["read"]},
-}
 
 
 class MyAuthProvider(AuthProvider):
-    """
-    This is for demo purpose, it's not a better
-    way to save and validate user credentials
-    """
+    def validate_admin_user(self, user: SUsers):
+        return True if user.type_user_id == 2 else False
 
     async def login(
         self,
@@ -52,30 +42,45 @@ class MyAuthProvider(AuthProvider):
             raise FormValidationError(
                 {"username": "Ensure username has at least 03 characters"}
             )
+        try:
+            user = await validate_auth_user(username, password)
+        except:
+            raise LoginFailed("Invalid username or password")
 
-        if username in users and password == "password":
-            """Save `username` in session"""
-            request.session.update({"username": username})
+        if not self.validate_admin_user(user):
+            raise  LoginFailed("admin validation error")
 
-            return response
+        access_token = create_access_token(user)
+        auth_user_set_cookie(response, ACCESS_TOKEN_TYPE, access_token)
+        return response
 
-        raise LoginFailed("Invalid username or password")
+            
+
 
     async def is_authenticated(self, request) -> bool:
-        if request.session.get("username", None) in users:
-            """
-            Save current `user` object in the request state. Can be used later
-            to restrict access to connected user.
-            """
-            request.state.user = users.get(request.session["username"])
-            return True
 
-        return False
+        token=request.cookies.get(ACCESS_TOKEN_TYPE)  
+        if not token:
+            return False
+
+        try:
+            payload = auth.decode_jwt(token)
+            validate_token_type(payload, ACCESS_TOKEN_TYPE)
+            user = await get_user_by_token_sub(payload)
+        except InvalidTokenError:
+            return False
+        
+        if not self.validate_admin_user(user):
+            return False
+        request.state.user = user
+
+        return True
+
 
     def get_admin_config(self, request: Request) -> AdminConfig:
         user = request.state.user  # Retrieve current user
         # Update app title according to current_user
-        custom_app_title = "Hello, " + user["name"] + "!"
+        custom_app_title = "Hello, " + user.first_name + "!"
         # Update logo url according to current_user
         custom_logo_url = None
         return AdminConfig(
@@ -85,42 +90,13 @@ class MyAuthProvider(AuthProvider):
     def get_admin_user(self, request: Request) -> AdminUser:
         user = request.state.user  # Retrieve current user
         photo_url = None
-        return AdminUser(username=user["name"])
+        return AdminUser(username=user.first_name)
 
     async def logout(self, request: Request, response: Response) -> Response:
-        request.session.clear()
+        response.delete_cookie(ACCESS_TOKEN_TYPE)
         return response
 
-"""
-    async def render_login(self, request: Request, admin: "BaseAdmin") -> Response:
-  
-        if request.method == "GET":
-            return admin.templates.TemplateResponse(
-                "login.html",
-                {"request": request, "_is_login_path": True},
-            )
-        form = await request.form()
-        try:
-            return await self.login(
-                form.get("username"),  # type: ignore
-                form.get("password"),  # type: ignore
-                form.get("remember_me") == "on",
-                request,
-                RedirectResponse(
-                    request.query_params.get("next")
-                    or request.url_for(admin.route_name + ":index"),
-                    status_code=HTTP_303_SEE_OTHER,
-                ),
-            )
-        except FormValidationError as errors:
-            return admin.templates.TemplateResponse(
-                "login.html",
-                {"request": request, "form_errors": errors, "_is_login_path": True},
-                status_code=HTTP_422_UNPROCESSABLE_ENTITY,
-            )
-        except LoginFailed as error:
-            return admin.templates.TemplateResponse(
-                "login.html",
-                {"request": request, "error": error.msg, "_is_login_path": True},
-                status_code=HTTP_400_BAD_REQUEST,
-            )"""
+    
+            
+            
+

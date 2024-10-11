@@ -15,7 +15,7 @@ class SmsCodesDAO(BaseDAO):
             query = (
             select(SmsCodes)
             .join(Users, SmsCodes.user_id == Users.id)
-            .where(Users.id == user_id, SmsCodes.is_used == False)
+            .where(Users.id == user_id)#, SmsCodes.is_used == False)
             .order_by(desc(SmsCodes.id))
             .limit(1)
             )

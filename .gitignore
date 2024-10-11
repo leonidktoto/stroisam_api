@@ -11,3 +11,8 @@ testsms.py
 sms_aero.py
 certs/
 .vscode
+validationOAuth2.py
+routerOAuth2.py
+provider_copy.py
+.env
+.env.*
