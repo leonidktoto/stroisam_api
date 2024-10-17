@@ -18,7 +18,7 @@ from app.exceptions import (
     UserIsNotRegisteredException,
     ) 
 
-from app.users.schemas import STokenInfo, SUserAuth, SUsers
+from app.users.schemas import SRegisterUser, STokenInfo, SUserAuth, SUsers
 from app.users.sms_codes.dao import SmsCodesDAO
 from app.users.sms_codes.models import SmsCodes
 
@@ -51,20 +51,17 @@ router=APIRouter(
 
 @router.post("/register")
 async def register_user(
-    first_name: Annotated[str, Query(max_length=15)],
-    email: EmailStr,
-    phone: Annotated[str, Query(regex=r'^\d{10}$', description="Номер телефона (ровно 10 цифр)", title='Строка')],
-    last_name: Annotated[str | SkipJsonSchema[None], Query(max_length=15)] = None,
+    reg_user: SRegisterUser
     ):
-    user = await UsersDAO.find_one_or_none(phone=phone)
+    user = await UsersDAO.find_one_or_none(phone=reg_user.phone)
     if user:
         raise  UserAlreadyExistsException
-    await UsersDAO.add_data(first_name=first_name, last_name=last_name, phone=phone, email=email)
+    await UsersDAO.add_data(first_name=reg_user.first_name, last_name=reg_user.last_name, phone=reg_user.phone, email=reg_user.email)
 
 
 @router.get("/sms_verification") #Переписать!!! Разделить на функции, добавить else latest_sms_code
 async def sms_verification(
-    phone: Annotated[str, Query(regex=r'^\d{10}$', description="Номер телефона (ровно 10 цифр)", title='Строка')]):
+    phone: Annotated[str, Query(pattern=r'^\d{10}$', description="Номер телефона (ровно 10 цифр)", title='Строка')]):
     
     user = await UsersDAO.find_one_or_none(phone=phone)
     if not user:

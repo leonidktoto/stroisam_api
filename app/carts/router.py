@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Response
 
 from app.carts.dao import CartsDAO
-from app.carts.model import Carts
+from app.carts.models import Carts
 from app.carts.schemas import SItemProduct, SUserCart
 from app.catalog.products.dao import ProductsDAO
 from app.exceptions import CannotAddDataToDatabase, CannotAddUpdateDatabase

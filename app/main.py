@@ -1,4 +1,5 @@
-from fastapi import HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
+
 from fastapi.responses import JSONResponse, RedirectResponse
 from app.create_fastapi_app import create_app
 from app.create_starlette_admin import create_admin
@@ -12,7 +13,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 # Создаем приложение FastAPI
 app = create_app(create_custom_static_urls=True)
-prefix="/api"
+#app = FastAPI()
+#prefix="/api"
 
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):
@@ -44,13 +46,13 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
 
 #Подключаем роутеры
 
-app.include_router(router_categories,prefix=prefix)
-app.include_router(router_products,prefix=prefix)
+app.include_router(router_categories)#,prefix=prefix)
+app.include_router(router_products)#,prefix=prefix)
 
-app.include_router(router_users, prefix=prefix)
-app.include_router(router_carts, prefix=prefix)
-app.include_router(router_orders, prefix=prefix)
-app.include_router(router_managments, prefix=prefix)
+app.include_router(router_users)#, prefix=prefix)
+app.include_router(router_carts)#, prefix=prefix)
+app.include_router(router_orders)#, prefix=prefix)
+app.include_router(router_managments)#, prefix=prefix)
 
 #Монтируем Starlette-admin в FastAPI
 admin=create_admin()

@@ -4,8 +4,6 @@ from starlette.responses import HTMLResponse, RedirectResponse, Response
 from starlette_admin.auth import AdminConfig, AdminUser, AuthProvider
 from starlette_admin.exceptions import FormValidationError, LoginFailed, StarletteAdminException
 
-from starlette.templating import Jinja2Templates
-from jinja2 import TemplateNotFound
 
 from starlette_admin.base import BaseAdmin
 from starlette.status import (

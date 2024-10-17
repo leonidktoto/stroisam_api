@@ -16,3 +16,4 @@ routerOAuth2.py
 provider_copy.py
 .env
 .env.*
+*.env

@@ -9,7 +9,7 @@ from starlette_admin import BaseField, DateTimeField, EmailField, EnumField, Pas
 from starlette_admin.contrib.sqla import ModelView
 
 
-from app.carts.model import Carts
+from app.carts.models import Carts
 from app.catalog.attributes.models import Attributes
 from app.catalog.categories.models import Categories 
 from app.catalog.product_attributes.models import ProductAttributes

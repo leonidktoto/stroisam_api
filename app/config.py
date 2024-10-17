@@ -17,7 +17,7 @@ print(BASE_DIR)
 
 class Settings_env(BaseSettings):
 
-    MODE: Literal["DEV", "TEST", "PROD"]
+    MODE: Literal["DEV", "TEST","PROD"]
     LOG_LEVEL: Literal["DEBUG", "INFO"]
     
     #DB

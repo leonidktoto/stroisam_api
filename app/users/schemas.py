@@ -21,10 +21,10 @@ class SUserAuth(SUsers):
     registration_attempts: int = Field(exclude=True)
 
 class SRegisterUser(BaseModel):
-    first_name: int
-    last_name: int | None
-    phone: int
+    first_name: str = Field(..., max_length=15)
     email: EmailStr
+    phone: str = Field(..., pattern=r'^\d{10}$', description="Номер телефона (ровно 10 цифр)", title='Строка')
+    last_name: str | None = Field(None, max_length=15)
 
 class STokenInfo(BaseModel):
     access_token: str

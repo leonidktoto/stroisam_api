@@ -1,0 +1,26 @@
+[
+    {
+        "first_name": "Леонид",
+        "last_name": "Власов",
+        "phone": "9170176646",
+        "email": "a966cx@gmail.com",
+        "hashed_password": "",
+        "type_user_id": 2,
+        "is_active": true,
+        "is_confirmed": true,
+        "registration_attempts": 0,
+        "discount": 0
+    },
+    {
+        "first_name": "Роман",
+        "last_name": "Романов",
+        "phone": "9170176647",
+        "email": "noemail@noemail.com",
+        "hashed_password": "",
+        "type_user_id": 1,
+        "is_active": true,
+        "is_confirmed": true,
+        "registration_attempts": 0,
+        "discount": 0
+    }
+]

@@ -1,8 +1,7 @@
-from re import L
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from app.DAO.base import BaseDAO
-from app.carts.model import Carts
+from app.carts.models import Carts
 from app.catalog.products.models import Products
 from app.database import async_session_maker
 

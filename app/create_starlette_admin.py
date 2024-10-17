@@ -15,7 +15,7 @@ from app.adminpanel.viewstarlette import (
     SmsCodesView,
     TypeUserView,
     UsersView)
-from app.carts.model import Carts
+from app.carts.models import Carts
 from app.database import sync_engine
 from app.catalog.categories.models import Categories
 from app.catalog.products.models import Products
@@ -34,7 +34,7 @@ def create_admin() -> Admin:
     sync_engine, 
     title="Панель администратора", 
     i18n_config = I18nConfig(default_locale="ru"),
-    auth_provider=MyAuthProvider(allow_paths=["app/adminpanel/statics/logo.svg"]),
+    auth_provider=MyAuthProvider(allow_routes=["app/adminpanel/statics/logo.svg"]),
     middlewares=[Middleware(SessionMiddleware, secret_key="123")],
     templates_dir="app/adminpanel/templates",
     )
