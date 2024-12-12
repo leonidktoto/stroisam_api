@@ -30,10 +30,13 @@ async def validate_auth_user(
         raise UserIsNotRegisteredException
 
     sms_code: Optional[SmsCodes] = await SmsCodesDAO.last_sms_code(user_id=user.id)
-       
+   
     if not sms_code:
         raise IncorrectSmsValidationException
-        
+
+    if sms_code.is_used:
+        raise SmsValidationExpired
+
     if sms_code.code!=password:
         raise IncorrectSmsValidationException
 
@@ -41,6 +44,9 @@ async def validate_auth_user(
     expires_at_utc = sms_code.expires_at.replace(tzinfo=timezone.utc) #Добавляем временную зону к полученному времени
     if expires_at_utc<current_utc_time:
         raise SmsValidationExpired
+
+    if not user.is_active:
+        raise UserInActive    
         
     await SmsCodesDAO.update_data({"is_used":True}, id=sms_code.id)
     await UsersDAO.update_data({"registration_attempts": 0}, id=user.id)

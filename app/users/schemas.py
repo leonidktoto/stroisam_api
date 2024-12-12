@@ -30,3 +30,6 @@ class STokenInfo(BaseModel):
     access_token: str
     refresh_token: str | None = None
     #token_type: str = "Bearer"
+
+class SUsersPhone(BaseModel):
+    phone: str = Field(..., pattern=r'^\d{10}$', description="Номер телефона (ровно 10 цифр)", title='Строка')

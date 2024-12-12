@@ -71,19 +71,27 @@
             const username = document.getElementById('username').value;
             if (username) {
                 const baseUrl = "{{ request.base_url }}";  // Получаем базовый URL из объекта request
-                const url = `${baseUrl}api/users/sms_verification?phone=${encodeURIComponent(username)}`;
-                fetch(url)
-                    .then(response => {
-                        if (response.ok) {
-                            alert('SMS sent successfully!');
-                        } else {
-                            alert('Failed to send SMS.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error sending SMS:', error);
-                        alert('An error occurred while sending the SMS.');
-                    });
+                const url = `${baseUrl}users/sms_verification`;
+
+                // Отправляем POST запрос с JSON телом
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',  // Устанавливаем тип содержимого
+                    },
+                    body: JSON.stringify({ phone: username })  // Передаём параметр phone в теле запроса
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('SMS sent successfully!');
+                    } else {
+                        alert('Failed to send SMS.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending SMS:', error);
+                    alert('An error occurred while sending the SMS.');
+                });
             } else {
                 alert('Please enter your username/phone number.');
             }

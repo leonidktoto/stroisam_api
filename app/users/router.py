@@ -18,7 +18,7 @@ from app.exceptions import (
     UserIsNotRegisteredException,
     ) 
 
-from app.users.schemas import SRegisterUser, STokenInfo, SUserAuth, SUsers
+from app.users.schemas import SRegisterUser, STokenInfo, SUserAuth, SUsers, SUsersPhone
 from app.users.sms_codes.dao import SmsCodesDAO
 from app.users.sms_codes.models import SmsCodes
 
@@ -59,10 +59,10 @@ async def register_user(
     await UsersDAO.add_data(first_name=reg_user.first_name, last_name=reg_user.last_name, phone=reg_user.phone, email=reg_user.email)
 
 
-@router.get("/sms_verification") #Переписать!!! Разделить на функции, добавить else latest_sms_code
-async def sms_verification(
-    phone: Annotated[str, Query(pattern=r'^\d{10}$', description="Номер телефона (ровно 10 цифр)", title='Строка')]):
-    
+@router.post("/sms_verification") #Переписать!!! Разделить на функции, добавить else latest_sms_code
+async def sms_verification(user_phone: SUsersPhone):
+    phone=user_phone.phone
+    print(phone)
     user = await UsersDAO.find_one_or_none(phone=phone)
     if not user:
         raise UserIsNotRegisteredException

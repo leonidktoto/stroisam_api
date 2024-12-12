@@ -20,6 +20,54 @@
         "type_user_id": 1,
         "is_active": true,
         "is_confirmed": true,
+        "registration_attempts": 6,
+        "discount": 0
+    },
+    {
+        "first_name": "Виталий",
+        "last_name": "Воронов",
+        "phone": "9170176648",
+        "email": "voronov@email.com",
+        "hashed_password": "",
+        "type_user_id": 1,
+        "is_active": false,
+        "is_confirmed": true,
+        "registration_attempts": 0,
+        "discount": 0
+    },
+    {
+        "first_name": "Григорий",
+        "last_name": "Егоров",
+        "phone": "9170176649",
+        "email": "egorov@email.com",
+        "hashed_password": "",
+        "type_user_id": 1,
+        "is_active": true,
+        "is_confirmed": false,
+        "registration_attempts": 2,
+        "discount": 0
+    },
+    {
+        "first_name": "Татьяна",
+        "last_name": "В",
+        "phone": "9170176955",
+        "email": "tat@email.com",
+        "hashed_password": "",
+        "type_user_id": 1,
+        "is_active": true,
+        "is_confirmed": false,
+        "registration_attempts": 5,
+        "discount": 0
+    },
+    {
+        "first_name": "Вика",
+        "last_name": "В",
+        "phone": "1111111111",
+        "email": "Vik@email.com",
+        "hashed_password": "",
+        "type_user_id": 1,
+        "is_active": true,
+        "is_confirmed": false,
         "registration_attempts": 0,
         "discount": 0
     }

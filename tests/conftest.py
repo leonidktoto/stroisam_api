@@ -160,6 +160,7 @@ async def setup_db():
     product_attributes=open_mock_json("product_attributes")
     type_user=open_mock_json("type_users")
     users=open_mock_json("users")
+    sms_codes=open_mock_json("sms_codes")
 
     async with async_session_maker() as session:
         add_category = insert(Categories).values(categories)
@@ -168,6 +169,7 @@ async def setup_db():
         add_products_attributes = insert(ProductAttributes).values(product_attributes)
         add_type_user = insert(TypeUser).values(type_user)
         add_user = insert(Users).values(users)
+        add_sms_codes = insert(SmsCodes).values(sms_codes)
 
         await session.execute(add_category)
         await session.execute(add_products)
@@ -175,17 +177,38 @@ async def setup_db():
         await session.execute(add_products_attributes)
         await session.execute(add_type_user)
         await session.execute(add_user)
+        await session.execute(add_sms_codes)
         await session.commit()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 async def test_app():
     async with lifespan(fastapi_app):
         return fastapi_app
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 async def ac(test_app):
     async with AsyncClient(transport=ASGITransport(app=test_app), base_url="http://test") as ac:
+        yield ac
+
+
+#    Аутентифицированный пользователь
+@pytest.fixture(scope="session")
+async def test_app_auth():
+    async with lifespan(fastapi_app):
+        return fastapi_app
+
+@pytest.fixture(scope="session")
+async def authenticated_ac(test_app_auth):
+    async with AsyncClient(transport=ASGITransport(app=test_app_auth), base_url="http://test_auth_user") as ac:
+        response = await ac.post("/users/login", data={
+        "username": "1111111111",
+        "password": "126"
+    }, follow_redirects=True)
+
+        assert ac.cookies["access"], "Cookie 'access' не найдена"
+        assert ac.cookies["refresh"], "Cookie 'refresh' не найдена"
+
         yield ac
 
 @pytest.fixture(scope="function")
