@@ -4,7 +4,7 @@ from app.catalog.attributes.models import Attributes
 from app.catalog.product_attributes.models import ProductAttributes
 from app.catalog.products.models import Products
 from app.database import async_session_maker
-from sqlalchemy import alias, and_, func, or_, select
+from sqlalchemy import alias, and_, distinct, func, or_, select
 from sqlalchemy.orm import aliased, joinedload, selectinload, contains_eager
 from app.catalog.product_images.models import ProductImages
 from fastapi.encoders import jsonable_encoder
@@ -84,7 +84,7 @@ class ProductsDAO(BaseDAO):
 
 
     @classmethod
-    async def test(cls, filters, category_id: int):
+    async def find_products_by_filter(cls, filters, category_id: int):
         async with async_session_maker() as session:
 
             attr = aliased(Attributes)
@@ -105,17 +105,17 @@ class ProductsDAO(BaseDAO):
             )
             subquery_im = (
                 select(im.product_id, im.image_url)
-                .where(ProductImages.logo == True)
+                .where(im.logo == True)
                 .subquery("im")
             )
             print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
             filters = jsonable_encoder(filters)
             print(filters)
-#            filters = [
-#    {'attribute_name': 'Сорт', 'attribute_value': ["Экстра"]},
-#    {'attribute_name': 'Размер', 'attribute_value': ["40x40x3000 мм", "30x30x3000 мм"]},
-#    {'attribute_name': 'Материал', 'attribute_value': ["Сосна","Береза"]},
-#            ]
+   #         filters = [
+   #
+   # {'attribute_name': 'Размер', 'attribute_value': ["25x35x2000 мм"]},
+   # {'attribute_name': 'Сорт', 'attribute_value': ["Оптима"]},
+   #         ]
 
             filter_conditions = []
             for filter_item in filters:
@@ -131,13 +131,12 @@ class ProductsDAO(BaseDAO):
                 select(
                     subquery_pr_attr.c.product_id,
                     func.count(subquery_pr_attr.c.product_id).label('count_product')
-                    )
-                .select_from(pr)
-                .join(subquery_pr_attr, pr.id == subquery_pr_attr.c.product_id)
-                .filter(or_(*filter_conditions))
-                .group_by(subquery_pr_attr.c.product_id,)
-                .having(subquery_pr_attr.c.product_id == len(filters)).subquery("find_pr")
                 )
+                .filter(or_(*filter_conditions))  # Применяем фильтры
+                .group_by(subquery_pr_attr.c.product_id)
+                .having(func.count(subquery_pr_attr.c.product_id) == len(filters))  # Проверяем совпадение всех фильтров
+                .subquery("find_pr")
+            )
             
             query=(
                 select(
@@ -155,7 +154,7 @@ class ProductsDAO(BaseDAO):
                 .where(Products.category_id == category_id)         
             )
   
-
+            print("!!!!!!@@@@@@@@@@!!!!!!!!!!@@@@@@@@@@@@!!!!!!!!!!!")
             print(query.compile(compile_kwargs={"literal_binds": True}))
             result = await session.execute(query)
             return result.mappings().all()

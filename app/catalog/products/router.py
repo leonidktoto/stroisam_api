@@ -29,6 +29,6 @@ async def get_products_by_id(id:int):
     return result
 
 @router.post("/filter", response_model=list[SProduct])
-async def get_test(filters: list[FilterProduct], category_id: int):
-    result = await ProductsDAO.test(filters, category_id)
+async def get_product_by_filter(filters: list[FilterProduct], category_id: int):
+    result = await ProductsDAO.find_products_by_filter(filters, category_id)
     return result
