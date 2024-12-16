@@ -40,5 +40,6 @@
     {"product_id": 13, "attribute_name_id": 3, "attribute_value": "Оптима"},    
     {"product_id": 14, "attribute_name_id": 1, "attribute_value": "Сосна"},
     {"product_id": 14, "attribute_name_id": 2, "attribute_value": "40x50x2000 мм"},
-    {"product_id": 14, "attribute_name_id": 3, "attribute_value": "Оптима"}
+    {"product_id": 14, "attribute_name_id": 3, "attribute_value": "Оптима"},
+    {"product_id": 15, "attribute_name_id": 1, "attribute_value": "Сосна"}
 ]

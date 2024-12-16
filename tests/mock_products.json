@@ -111,4 +111,13 @@
       "price": 120,
       "stock": 750
     }
+    ,
+    {
+      "article": 345467543,
+      "category_id": 26,
+      "product_name": "Доска",
+      "description": "прямоугольная",
+      "price": 13,
+      "stock": 13
+    }
   ]
