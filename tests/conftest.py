@@ -161,6 +161,7 @@ async def setup_db():
     type_user=open_mock_json("type_users")
     users=open_mock_json("users")
     sms_codes=open_mock_json("sms_codes")
+    carts=open_mock_json("carts")
 
     async with async_session_maker() as session:
         add_category = insert(Categories).values(categories)
@@ -170,6 +171,7 @@ async def setup_db():
         add_type_user = insert(TypeUser).values(type_user)
         add_user = insert(Users).values(users)
         add_sms_codes = insert(SmsCodes).values(sms_codes)
+        add_carts = insert(Carts).values(carts)
 
         await session.execute(add_category)
         await session.execute(add_products)
@@ -178,6 +180,7 @@ async def setup_db():
         await session.execute(add_type_user)
         await session.execute(add_user)
         await session.execute(add_sms_codes)
+        await session.execute(add_carts)
         await session.commit()
 
 

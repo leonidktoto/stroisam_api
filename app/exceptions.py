@@ -59,16 +59,16 @@ class UserIsNotPresentException(HTTPException):
 
 class CannotAddDataToDatabase(HTTPException):
     def __init__(self, detail: str = "Не удалось добавить запись"):
-        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
 
 class CannotAddUpdateDatabase(HTTPException):
     def __init__(self, detail: str = "Не удалось обновить запись"):
-        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
 
 
 class CannotDeleteFromDatabase(HTTPException):
     def __init__(self, detail: str = "Не удалось удалить запись"):
-        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
 
 
 

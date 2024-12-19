@@ -1,6 +1,5 @@
 from httpx import AsyncClient
 import pytest
-from sqlalchemy import Null, null
 
 
 @pytest.mark.asyncio
