@@ -18,3 +18,4 @@ provider_copy.py
 .env.*
 *.env
 login_get.html
+.pytest_cache
