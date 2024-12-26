@@ -53,7 +53,7 @@ async def create_order(
             quantity = item["quantity"],
             price = item["price"],
         )
-
+    await CartsDAO.delete_by_filter(user_id = user.id) # очистка корзины
     # здесь нужно передать в celery id для передачи заказа менеджеру
     return {"message": "Заказ создан", "order_id": order_id["id"]}
 
