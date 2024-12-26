@@ -15,14 +15,16 @@ def encode_jwt(
 ):
     to_encode = payload.copy()
     now = datetime.now(timezone.utc)
-    print(payload)
-    if payload["type"] == "access" and payload["role"] == 1:
-        if expire_timedelta:
-            expire = now + expire_timedelta
-        else:
-            expire = now + timedelta(minutes=expire_minutes)
-    else: 
+
+    if expire_timedelta:
+        expire = now + expire_timedelta
+    else:
+        expire = now + timedelta(minutes=expire_minutes)
+        
+    if payload.get("type") == "access" and payload.get("role") == 2:
         expire = now + timedelta(minutes=120)
+            
+
     to_encode.update(
         exp=expire,
         iat=now
