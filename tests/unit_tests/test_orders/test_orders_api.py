@@ -1,6 +1,8 @@
 import pytest
 from httpx import AsyncClient
 
+from app.orders.order_items.dao import OrdersItemsDAO
+
 @pytest.mark.parametrize("date, status, count_orders, status_code", [
     ({"start_date": "2024-01-01", "end_date": "2024-02-02"}, {"status": "PROCESSING"}, 1, 200),
     ({"start_date": "2024-01-01", "end_date": "2024-03-03"}, {}, 3, 200),
@@ -19,3 +21,26 @@ async def test_get_user_orders(date, status, count_orders, status_code, authenti
     if status_code == 200:
         assert len(response.json()) == count_orders
 
+
+@pytest.mark.parametrize("product, status_code", [
+        
+        (
+            {
+                "product_id": 1,
+                "quantity": 1    
+            }, 
+            200
+        ),
+        (   
+            {}, 
+            400
+        )
+    ]
+)
+@pytest.mark.asyncio
+async def test_create_order(product, status_code, authenticated_ac: AsyncClient):
+    if product:
+        response = await authenticated_ac.post("/users/cart/items", json=product, follow_redirects=True)
+        assert response.status_code == status_code
+    response = await authenticated_ac.post("/users/orders/checkout")
+    assert response.status_code == status_code

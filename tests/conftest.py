@@ -121,7 +121,7 @@ async def setup_db():
         FOR EACH ROW
         EXECUTE FUNCTION update_sum_price();
         """))
-
+#
         await conn.execute(text("""
         CREATE TRIGGER update_sum_price_trigger_carts
         BEFORE INSERT OR UPDATE ON carts
@@ -136,18 +136,19 @@ async def setup_db():
             IF NEW.order_id IS NULL THEN
                 DELETE FROM order_items WHERE id = NEW.id;
             END IF;
-            RETURN NULL;
+            RETURN NEW; -- Возврат NEW для AFTER триггера
         END;
         $$ LANGUAGE plpgsql;
         """))
         # Создание триггера для вставки, обновления и удаления
         await conn.execute(text("""
         CREATE TRIGGER trg_delete_if_order_id_is_null
-        BEFORE INSERT OR UPDATE ON order_items
+        AFTER INSERT OR UPDATE ON order_items
         FOR EACH ROW
         EXECUTE FUNCTION delete_if_order_id_is_null();
         """))
-#
+##
+        
         
 
     def open_mock_json(model: str):
