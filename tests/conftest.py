@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic_core.core_schema import model_field
 import pytest
 import json
@@ -120,7 +121,7 @@ async def setup_db():
         FOR EACH ROW
         EXECUTE FUNCTION update_sum_price();
         """))
-
+#
         await conn.execute(text("""
         CREATE TRIGGER update_sum_price_trigger_carts
         BEFORE INSERT OR UPDATE ON carts
@@ -135,18 +136,19 @@ async def setup_db():
             IF NEW.order_id IS NULL THEN
                 DELETE FROM order_items WHERE id = NEW.id;
             END IF;
-            RETURN NULL;
+            RETURN NEW; -- Возврат NEW для AFTER триггера
         END;
         $$ LANGUAGE plpgsql;
         """))
         # Создание триггера для вставки, обновления и удаления
         await conn.execute(text("""
         CREATE TRIGGER trg_delete_if_order_id_is_null
-        BEFORE INSERT OR UPDATE ON order_items
+        AFTER INSERT OR UPDATE ON order_items
         FOR EACH ROW
         EXECUTE FUNCTION delete_if_order_id_is_null();
         """))
-#
+##
+        
         
 
     def open_mock_json(model: str):
@@ -162,6 +164,7 @@ async def setup_db():
     users=open_mock_json("users")
     sms_codes=open_mock_json("sms_codes")
     carts=open_mock_json("carts")
+    orders=open_mock_json("orders")
 
     async with async_session_maker() as session:
         add_category = insert(Categories).values(categories)
@@ -172,6 +175,9 @@ async def setup_db():
         add_user = insert(Users).values(users)
         add_sms_codes = insert(SmsCodes).values(sms_codes)
         add_carts = insert(Carts).values(carts)
+        for order in orders:
+            order['order_date'] = datetime.strptime(order['order_date'], '%Y-%m-%d %H:%M:%S')
+        add_orders = insert(Orders).values(orders)
 
         await session.execute(add_category)
         await session.execute(add_products)
@@ -181,6 +187,7 @@ async def setup_db():
         await session.execute(add_user)
         await session.execute(add_sms_codes)
         await session.execute(add_carts)
+        await session.execute(add_orders)
         await session.commit()
 
 

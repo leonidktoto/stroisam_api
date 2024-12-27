@@ -99,7 +99,7 @@ def upgrade():
         IF NEW.order_id IS NULL THEN
             DELETE FROM order_items WHERE id = NEW.id;
         END IF;
-        RETURN NULL;
+        RETURN NEW; -- Возврат NEW для AFTER триггера
     END;
     $$ LANGUAGE plpgsql;
     """)

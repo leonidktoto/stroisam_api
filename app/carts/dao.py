@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import joinedload
 from app.DAO.base import BaseDAO
 from app.carts.models import Carts

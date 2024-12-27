@@ -1,0 +1,23 @@
+[
+    {
+        "user_id": 6,
+        "order_date": "2024-01-01 00:00:00",
+        "total_amount": 100,
+        "order_status": "PROCESSING",
+        "delivery_address": "г. Самара, ул. Ленина 1"
+    },
+    {
+        "user_id": 6,
+        "order_date": "2024-02-02 00:00:00",
+        "total_amount": 200,
+        "order_status": "COMPLETED",
+        "delivery_address": "г. Самара, ул. Ленина 2"
+    },
+    {
+        "user_id": 6,
+        "order_date": "2024-03-03 00:00:00",
+        "total_amount": 300,
+        "order_status": "CREATED",
+        "delivery_address": "г. Самара, ул. Ленина 3"
+    }
+]
