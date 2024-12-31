@@ -58,7 +58,7 @@ async def create_order(
     return {"message": "Заказ создан", "order_id": order_id["id"]}
 
         
-@router.get("/{order_id}", response_model=SOrderItems)
+@router.get("/{order_id}", response_model=list[SOrderItems]|None)
 async def get_order_detail(
     order_id: int,
     user: SUsers = Depends(get_current_active_auth_user),       
