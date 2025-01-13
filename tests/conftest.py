@@ -1,4 +1,5 @@
 from datetime import datetime
+from operator import add
 from pydantic_core.core_schema import model_field
 import pytest
 import json
@@ -165,6 +166,7 @@ async def setup_db():
     sms_codes=open_mock_json("sms_codes")
     carts=open_mock_json("carts")
     orders=open_mock_json("orders")
+    order_items=open_mock_json("order_items")   
 
     async with async_session_maker() as session:
         add_category = insert(Categories).values(categories)
@@ -178,6 +180,7 @@ async def setup_db():
         for order in orders:
             order['order_date'] = datetime.strptime(order['order_date'], '%Y-%m-%d %H:%M:%S')
         add_orders = insert(Orders).values(orders)
+        add_order_items = insert(OrderItems).values(order_items)    
 
         await session.execute(add_category)
         await session.execute(add_products)
@@ -188,6 +191,7 @@ async def setup_db():
         await session.execute(add_sms_codes)
         await session.execute(add_carts)
         await session.execute(add_orders)
+        await session.execute(add_order_items)
         await session.commit()
 
 
