@@ -10,5 +10,47 @@
         "product_id": 2,
         "quantity": 2,
         "price": 200
+    },
+    {
+        "order_id": 4,
+        "product_id": 1,
+        "quantity": 1,
+        "price": 100
+    },
+    {
+        "order_id": 4,
+        "product_id": 2,
+        "quantity": 2,
+        "price": 200
+    },
+    {
+        "order_id": 5,
+        "product_id": 1,
+        "quantity": 1,
+        "price": 100
+    },
+    {
+        "order_id": 5,
+        "product_id": 2,
+        "quantity": 2,
+        "price": 200
+    },
+    {
+        "order_id": 5,
+        "product_id": 3,
+        "quantity": 3,
+        "price": 300
+    },
+    {
+        "order_id": 6,
+        "product_id": 1,
+        "quantity": 1,
+        "price": 100
+    },
+    {
+        "order_id": 6,
+        "product_id": 2,
+        "quantity": 2,
+        "price": 200
     }
 ]
