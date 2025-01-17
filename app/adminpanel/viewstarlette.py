@@ -1,3 +1,4 @@
+from os import name
 from typing import Any, Dict
 from fastapi.background import P
 from jinja2 import Template
@@ -5,12 +6,14 @@ from sqlalchemy.orm import session
 from starlette.requests import Request
 
 
-from starlette_admin import BaseField, DateTimeField, EmailField, EnumField, PasswordField, PhoneField, RelationField, URLField
+from starlette_admin import BaseField, CustomView, DateTimeField, EmailField, EnumField, PasswordField, PhoneField, RelationField, URLField
 from starlette_admin.contrib.sqla import ModelView
 
 
 from app.carts.models import Carts
+from app.catalog.attributes.dao import AttributesDAO
 from app.catalog.attributes.models import Attributes
+from app.catalog.categories.dao import CategoriesDAO
 from app.catalog.categories.models import Categories 
 from app.catalog.product_attributes.models import ProductAttributes
 from app.catalog.product_images.models import ProductImages
@@ -27,6 +30,11 @@ from sqlalchemy import String, cast, or_
 from sqlalchemy.orm import query
 from app.database import sync_session
 
+from starlette.templating import Jinja2Templates
+from starlette.responses import HTMLResponse
+from starlette.requests import Request
+
+templates = Jinja2Templates(directory="app/adminpanel/templates")
 
 class CustomModelView(ModelView):
     column_visibility = True
@@ -165,7 +173,7 @@ class ProductsView(CustomModelView):
     #exclude_fields_from_list = [ProductImages.products]
     exclude_fields_from_create = [Products.product_attribute, Products.image]
     exclude_fields_from_edit =[Products.product_attribute, Products.image]
-
+    list_template="custom_list.html"
 
 
 class AttributesView(CustomModelView):
@@ -434,3 +442,20 @@ class SmsCodesView(CustomModelView):
     label= "SMS коды"
 
     fields = [c.name for c in SmsCodes.__table__.c]+[SmsCodes.user]
+
+
+
+
+
+class AddProductView(CustomView):
+    name = "Добавить товар"
+    label = "Добавить товар"
+    icon = "fa fa-plus"
+
+
+    async def render(self, request: Request, templates=None) -> HTMLResponse:
+        categories = await CategoriesDAO.find_all()
+        attributes_from_db = await AttributesDAO.find_all()
+
+        attributes = [dict(attr) for attr in attributes_from_db]
+        return templates.TemplateResponse("add_product.html", {"request": request, "categories": categories, "attributes": attributes})

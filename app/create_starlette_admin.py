@@ -4,6 +4,7 @@ from starlette.middleware import Middleware
 from starlette_admin.contrib.sqla import Admin
 from app.adminpanel.provider import MyAuthProvider
 from app.adminpanel.viewstarlette import (
+    AddProductView,
     AttributesView,
     CartsView,
     CategoriesView,
@@ -39,6 +40,8 @@ def create_admin() -> Admin:
     templates_dir="app/adminpanel/templates",
     )
 
+    custom_view = AddProductView(path="/add_product", label="Добавить новый товар", icon="fa fa-plus")
+    admin.add_view(custom_view)
 
     admin.add_view(
         DropDown(

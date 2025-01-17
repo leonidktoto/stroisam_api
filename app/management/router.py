@@ -1,11 +1,19 @@
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
+from typing import List
+from fastapi import APIRouter, Depends, File, Form, Query, Request, Response, UploadFile, HTTPException
+from fastapi.responses import JSONResponse, RedirectResponse
 from PIL import Image
 import boto3
 from io import BytesIO
 from botocore.exceptions import NoCredentialsError
+from app.catalog.categories.dao import CategoriesDAO
+from app.catalog.product_attributes.dao import ProductAttributesDAO
+from app.catalog.product_images.dao import ProductImagesDAO
+from app.catalog.products.dao import ProductsDAO
 from app.config import settings
+from app.management.helpers import load_images_to_s3
 from app.users.router import http_bearer
+from app.users.schemas import SUsers
+from app.users.validation import get_admin_active_auth_user, get_current_active_auth_user
 
 
 router=APIRouter(
@@ -34,41 +42,92 @@ def resize_image(image: Image.Image, size: tuple) -> BytesIO:
     return img_byte_arr
 
 @router.post("/upload-image/")
-async def upload_image(file_dir: str, file: UploadFile = File(...)):
-    try:
-        # Открытие исходного изображения с помощью Pillow
-        image = Image.open(file.file)
-        
-        # Создание изображений в трех разных разрешениях
-        sizes = {
-            "small": (150, 150),
-            "medium": (600, 600),
-            "large": (1200, 1200)
-        }
-        file_urls = {}
+async def upload_image(
+    file_dir: str, 
+    images: list[UploadFile] = File([...]),
+    user: SUsers = Depends(get_admin_active_auth_user)
+):
+    result = {}
+    if images:
+        print("23456ytrewdrfghygtr54r3ewfdv")
+        for image in images:
 
-        for size_name, size in sizes.items():
-            # Изменение размера изображения
-            resized_image = resize_image(image, size)
+            image_url = load_images_to_s3(file=image, file_dir=file_dir)
+            result[image.filename] = image_url
+    print(result)
+    return result
             
-            # Имя файла с добавлением префикса для разрешения
-            filename = f"{file_dir}/{size_name}_{file.filename}"
+    
 
-            # Загрузка изображения в S3
-            s3.upload_fileobj(
-                resized_image,
-                settings.BUCKET_NAME,
-                filename,
-                ExtraArgs={"ContentType": "image/jpeg"}
-            )
 
-            # Формирование URL для каждого изображения
-            file_urls[size_name] = f"{settings.ENDPOINT_URL}/{settings.BUCKET_NAME}/{filename}"
 
-        # Возвращаем ссылки на изображения в JSON-ответе
-        return JSONResponse(content={"images": file_urls}, status_code=200)
 
-    except NoCredentialsError:
-        raise HTTPException(status_code=500, detail="Credentials not available")
+@router.post("/add_product", name="managment:add_product")
+async def add_product_form(
+    request: Request,
+    product_name: str = Form(..., max_length=255),
+    article: int = Form(..., gt=0, le=999999999),
+    category_id: int = Form(..., gt=0, le=999999999),
+    price: int = Form(..., gt=0, le=999999999),
+    stock: int = Form(..., gt=0, le=999999999),
+    description: str = Form("", max_length=2000),
+    attributes: List[str] = Form([]),
+    attribute_values: List[str] = Form([], max_length=255),
+    images: list[UploadFile] = File([]),
+    user: SUsers = Depends(get_admin_active_auth_user)
+):
+    product = None 
+
+    try:
+        dict_attr = dict(zip(attributes, attribute_values))
+        print("Result:", dict_attr)
+
+        form_data = await request.form()
+        print("Form Data:", form_data)
+
+        # Добавление продукта
+        product = await ProductsDAO.add_data(
+            product_name=product_name,
+            article=article,
+            category_id=category_id,
+            price=price,
+            stock=stock,
+            description=description
+        )
+        print(product.id)
+
+        # Добавление атрибутов продукта
+        if dict_attr:
+            for attr_id, value in dict_attr.items():
+                await ProductAttributesDAO.add_data(
+                    product_id=product.id,
+                    attribute_name_id=int(attr_id),
+                    attribute_value=value
+                )
+
+        # Получение категории и добавление изображений
+        category = await CategoriesDAO.find_by_id(category_id)
+        if category:
+            category_name = category.category_name
+
+            if images:
+                for image in images:
+         
+                    image_url = load_images_to_s3(
+                        file=image,
+                        file_dir=category_name,
+                        product_id=product.id
+                    )
+                    logo = True if image.filename and image.filename.startswith("logo.") else False
+                    await ProductImagesDAO.add_data(product_id=product.id, image_url=image_url, logo=logo)
+
+        return RedirectResponse(url="/admin/add_product", status_code=303)
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        if product:
+            await ProductsDAO.delete_by_filter(id=product.id)
+        print(f"Ошибка: {e}")
+        return JSONResponse(
+            content={"error": "Ошибка добавления товара", "Детали": str(e)},
+            status_code=400
+        )

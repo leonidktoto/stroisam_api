@@ -1,0 +1,158 @@
+{% extends "layout.html" %}
+
+{% block header %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h1></h1>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('admin:index') }}">Admin</a>
+            </li>
+            <li class="breadcrumb-item active">Добавить товар</li>
+        </ol>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <form action="{{ url_for('managment:add_product') }}" method="POST" enctype="multipart/form-data">
+
+
+                        <div class="card-body border-bottom py-3">
+                            <div class="mb-3">
+                                <label for="product_name" class="form-label">Имя товара</label>
+                                <input type="text" maxlength="255" id="product_name" name="product_name" class="form-control"  required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="article" class="form-label">Артикул</label>
+                                <input type="number" min="1" max="999999999" id="article" name="article" class="form-control"  required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="category_id">Категория</label>
+                                <select name="category_id" id="category_id" class="form-control select2" required>
+                                    <option value=""></option> <!-- Пустое значение -->
+                                    {% for category in categories %}
+                                        <option value="{{ category.id }}">{{ category.category_name }}</option>
+                                    {% else %}
+                                        <option disabled>No categories available</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="price" class="form-label">Цена</label>
+                                <input type="number" min="1" max="999999999" id="price" name="price" class="form-control"  required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="stock" class="form-label">Количество</label>
+                                <input type="number" min="1" max="999999999" id="stock" name="stock" class="form-control"  required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Описание</label>
+                                <textarea id="description" maxlength="2000" name="description" class="form-control" ></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="attributes" class="form-label">Атрибуты товара</label>
+                                <div id="attributes-container">
+                            <!-- Поля добавляются динамически через JS -->
+                                </div>
+                                <button type="button" id="add-attribute" class="btn btn-primary btn-sm mt-2">Добавить аттрибуты</button>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="images" class="form-label">Изображения</label><br>
+                                <input type="file" id="images" name="images"  class="form-control" multiple accept=".jpg, .jpeg, .png"><br>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-black">
+                            <div class="btn-list ms-auto justify-content-end">
+                                <a href="{{ url_for('admin:index') }}" class="btn btn-danger">Отменить</a>
+                                <button type="submit" class="btn btn-success">Сохранить</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block head_css %}
+    {{ super() }}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .is-invalid .select2-selection {
+            border-color: #d63939 !important;
+        }
+        
+    </style>
+{% endblock %}
+
+{% block script %}
+    {{ super() }}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Инициализация Select2 на поле category_id
+            $('#category_id').select2({
+                placeholder: 'Поиск', // Плейсхолдер
+                allowClear: true                // Кнопка очистки
+            });
+        });
+    </script>
+    <script type="text/javascript" src="{{ url_for('admin:statics', path='js/form.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        const attributesContainer = document.getElementById("attributes-container");
+        const addAttributeButton = document.getElementById("add-attribute");
+        const availableAttributes = JSON.parse('{{ attributes | tojson | safe }}');
+        
+        // Функция для добавления нового набора полей атрибута
+        function addAttribute() {
+            const attributeGroup = document.createElement("div");
+            attributeGroup.classList.add("attribute-group", "d-flex", "align-items-center", "mb-2");
+        
+            const selectOptions = availableAttributes
+                .map(attr => `<option value="${attr.id}">${attr.attribute_name}</option>`)
+                .join("");
+        
+                attributeGroup.innerHTML = `
+    <select name="attributes" class="form-control me-3" required>
+        <option value="">Выберите аттрибут</option>
+        ${selectOptions}
+    </select>
+    <div style="width: 20px;"></div> <!-- Добавляем пространство -->
+    <input type="text" maxlength="200" name="attribute_values" class="form-control me-2" placeholder="Значение" required>
+    <button type="button" class="btn btn-danger btn-sm remove-attribute">&times;</button>
+`;
+        
+            attributesContainer.appendChild(attributeGroup);
+
+            // Инициализация Select2 для нового select
+            const newSelect = attributeGroup.querySelector('select');
+            $(newSelect).select2({
+                placeholder: 'Поиск',
+                allowClear: true
+            });
+        
+            // Добавляем обработчик события для кнопки удаления
+            const removeButton = attributeGroup.querySelector(".remove-attribute");
+            removeButton.addEventListener("click", function () {
+                attributeGroup.remove();
+            });
+        }
+
+        // Обработчик события для кнопки "Add Attribute"
+        addAttributeButton.addEventListener("click", addAttribute);
+    });
+    </script>
+{% endblock %}

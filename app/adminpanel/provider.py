@@ -18,11 +18,6 @@ from app.users.token import ACCESS_TOKEN_TYPE, REFRESH_TOKEN_TYPE, auth_user_set
 from app.users.validation import get_current_token_payload, get_user_by_token_sub, validate_auth_user, validate_token_type
 
 
-# Указываем путь к папке с шаблонами
-#templates = Jinja2Templates(directory="app/adminpanel/templates")
-
-
-
 class MyAuthProvider(AuthProvider):
     def validate_admin_user(self, user: SUsers):
         return True if user.type_user_id == 2 else False
@@ -78,7 +73,7 @@ class MyAuthProvider(AuthProvider):
     def get_admin_config(self, request: Request) -> AdminConfig:
         user = request.state.user  # Retrieve current user
         # Update app title according to current_user
-        custom_app_title = "Hello, " + user.first_name + "!"
+        custom_app_title = "Привет, " + user.first_name + "!"
         # Update logo url according to current_user
         custom_logo_url = None
         return AdminConfig(
