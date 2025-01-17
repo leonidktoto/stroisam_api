@@ -66,7 +66,7 @@ async def upload_image(
 async def add_product_form(
     request: Request,
     product_name: str = Form(..., max_length=255),
-    article: int = Form(..., gt=0, le=999999999),
+    article: str = Form("", max_length=20),
     category_id: int = Form(..., gt=0, le=999999999),
     price: int = Form(..., gt=0, le=999999999),
     stock: int = Form(..., gt=0, le=999999999),

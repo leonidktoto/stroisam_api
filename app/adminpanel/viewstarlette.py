@@ -59,9 +59,13 @@ class CategoriesView(CustomModelView):
         ),
         HasOne(
             name="parent",
-            label="Родительский категория",
+            label="Родительская категория",
             identity="categories",
           #  multiple=False,
+        ),
+        StringField(
+            name="article",
+            label="Артикул",
         ),
         StringField(
             name="category_name",

@@ -10,6 +10,7 @@ class Categories(Base):
     __tablename__ = "categories"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     parent_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="CASCADE"), nullable=True, index=True)
+    article: Mapped[str] = mapped_column(index=True, nullable=True, unique=True)
     category_name: Mapped[str] = mapped_column(nullable=False, index=True)
     image_url: Mapped[str] = mapped_column(nullable=True)
    

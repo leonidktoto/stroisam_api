@@ -57,7 +57,7 @@ async def test_get_subcategories(parent_id, status_code, expected_response, ac: 
         (0, 200, []),
         (26, 200, [{
       "id": 15,
-      "article": 345467543,
+      "article": None,
       "product_name": "Доска",
       "price": 13,
       'image_url': None
@@ -90,7 +90,7 @@ async def test_get_products_by_category_id(category_id, status_code,expected_res
 
         (15,200,
             {"id":15,
-            "article":345467543,
+            "article": None,
             "product_name":"Доска",
             "description":"прямоугольная",
             "price":13,
@@ -140,7 +140,7 @@ async def test_get_products_by_id(id, status_code,expected_response, ac: AsyncCl
             ], 200, [
             {
                 "id": 14,
-                "article": 212378906,
+                "article": None,
                 "product_name": "Рейка строганая 40x50x2000 мм хвоя сорт Оптима",
                 "price": 120,
                 "image_url": None
@@ -165,7 +165,7 @@ async def test_get_products_by_id(id, status_code,expected_response, ac: AsyncCl
             ], 200, [
             {
                 "id": 14,
-                "article": 212378906,
+                "article": None,
                 "product_name": "Рейка строганая 40x50x2000 мм хвоя сорт Оптима",
                 "price": 120,
                 "image_url": None

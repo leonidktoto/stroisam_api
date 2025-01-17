@@ -4,7 +4,7 @@ from typing import List
 
 class SProducts(BaseModel):
     id: int
-    article: int
+    article: str | None
     category_id: int
     product_name: str
     description: str
