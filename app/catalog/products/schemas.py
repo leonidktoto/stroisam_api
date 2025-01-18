@@ -27,3 +27,6 @@ class SProductsWithAttr(SProducts):
     product_attributes: list[dict | None]
     image_urls: list[str | None]
 
+class SAttributeValues(BaseModel):
+    attribute_name: str
+    attribute_value: List[str]

@@ -158,3 +158,26 @@ class ProductsDAO(BaseDAO):
             print(query.compile(compile_kwargs={"literal_binds": True}))
             result = await session.execute(query)
             return result.mappings().all()
+
+
+    @classmethod
+    async def get_filter_options(cls, id: int):
+        async with async_session_maker() as session:
+            query = (
+                select(
+                    Attributes.attribute_name,
+                    func.array_agg(ProductAttributes.attribute_value.distinct()).label('attribute_value')
+                )
+                .select_from(Products)
+                .join(ProductAttributes, Products.id == ProductAttributes.product_id, isouter=True)
+                .join(Attributes, ProductAttributes.attribute_name_id == Attributes.id, isouter=True)
+                .where(Products.category_id == id)
+                .group_by(Attributes.attribute_name)
+            )
+            print("!!!!!!@@@@@@@@@@!!!!!!!!!!@@@@@@@@@@@@!!!!!!!!!!!")
+            print(query.compile(compile_kwargs={"literal_binds": True}))
+            result = await session.execute(query)
+            return result.mappings().all()
+
+
+        

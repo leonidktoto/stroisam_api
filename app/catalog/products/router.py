@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter
 from pydantic import BaseModel
 from app.catalog.products.dao import ProductsDAO
-from app.catalog.products.schemas import  SProduct, SProductsWithAttr
+from app.catalog.products.schemas import  SAttributeValues, SProduct, SProductsWithAttr
 from fastapi_cache.decorator import cache
 
 
@@ -31,4 +31,9 @@ async def get_products_by_id(id:int):
 @router.post("/filter", response_model=list[SProduct])
 async def get_product_by_filter(filters: list[FilterProduct], category_id: int):
     result = await ProductsDAO.find_products_by_filter(filters, category_id)
+    return result
+
+@router.get("/filters/options", response_model=list[SAttributeValues])
+async def get_filter_options(category_id: int):
+    result = await ProductsDAO.get_filter_options(category_id)
     return result
