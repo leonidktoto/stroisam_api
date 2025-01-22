@@ -22,8 +22,8 @@ oauth2_scheme=OAuth2PasswordBearer(tokenUrl="/api/users/login/")
 
 
 async def validate_auth_user(
-    username: str = Form(),
-    password: str = Form(),
+    username: str = Form(..., regex=r"^\d{1,10}$"),
+    password: str = Form(..., regex=r"^\d{1,10}$"),
 ) -> SUsers:
     user: Optional[Users] = await UsersDAO.find_one_or_none(phone=username)
     if not user:

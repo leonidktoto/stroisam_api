@@ -141,8 +141,8 @@ INSERT INTO products (article, category_id, product_name, description, price, st
 INSERT INTO attributes (attribute_name) VALUES 
 ('Материал'),
 ('Размер'),
-('Сорт')
--- Вставка атрибутов продуктов
+('Сорт');
+
 INSERT INTO product_attributes (product_id, attribute_name_id, attribute_value) VALUES 
 
 (1, '1', 'Сосна'),
@@ -228,3 +228,10 @@ INSERT INTO product_attributes (product_id, attribute_name_id, attribute_value) 
 (21, '1', 'Сосна'),
 (21, '2', '40x60x2000 мм'),
 (21, '3', 'Оптима');
+
+INSERT INTO type_user (type_name) VALUES 
+('Пользователь'),
+('Администратор');
+
+INSERT INTO users (first_name, last_name, phone, email, type_user_id) VALUES 
+('Леонид', 'Ктото', '9170176646', 'leonidktoto@gmail.com', 2);
