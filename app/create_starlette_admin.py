@@ -36,7 +36,7 @@ def create_admin() -> Admin:
     title="Панель администратора", 
     i18n_config = I18nConfig(default_locale="ru"),
     auth_provider=MyAuthProvider(allow_routes=["app/adminpanel/statics/logo.svg"]),
-    middlewares=[Middleware(SessionMiddleware, secret_key="123")],
+    middlewares=[],#[Middleware(SessionMiddleware, secret_key="123")],
     templates_dir="app/adminpanel/templates",
     )
 
