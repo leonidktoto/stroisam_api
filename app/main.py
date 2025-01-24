@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
 
 from fastapi.responses import JSONResponse, RedirectResponse
+from hawk_python_sdk.modules.fastapi.types import FastapiSettings
 from app.create_fastapi_app import create_app
 from app.create_starlette_admin import create_admin
 from app.catalog.categories.router import router as router_categories
@@ -10,11 +11,18 @@ from app.carts.router import router as router_carts
 from app.orders.router import router as router_orders
 from app.management.router import router as router_managments
 from starlette.middleware.base import BaseHTTPMiddleware
+from hawk_python_sdk.modules.fastapi import HawkFastapi
+from app.config import settings
 
 # Создаем приложение FastAPI
 app = create_app(create_custom_static_urls=True)
-#app = FastAPI()
-#prefix="/api"
+
+                                      # Разблокировать для работы с Hawk в Production!!!
+#hawk=HawkFastapi(
+#  {
+#    'app_instance':app, 
+#    "token": settings.HAWK_TOKEN
+#  })  # type: ignore
 
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):
@@ -32,17 +40,6 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         return response
         
-      #  try:
-      #      payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
-      #      request.state.user = payload
-      #  except jwt.ExpiredSignatureError:
-      #      raise HTTPException(status_code=401, detail="Token has expired")
-      #  except jwt.InvalidTokenError:
-      #      raise HTTPException(status_code=401, detail="Invalid token")
-        
-        return await call_next(request)
-
-#app.add_middleware(JWTAuthMiddleware)
 
 #Подключаем роутеры
 
