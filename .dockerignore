@@ -1,0 +1,12 @@
+.DS_Store/
+.venv/
+.vscode/
+__pycache__/
+.pytest_cache/
+
+11.html
+test.py
+testsms.py
+sms_aero.py
+
+validationOAuth2.py

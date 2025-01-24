@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: pg_db_ssam
+    image: postgres:15
+    env_file:
+      - .env-non-dev
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_prod:/var/lib/postgresql/data 
+
+  redis:
+    container_name: redis_ssam
+    image: redis:latest
+    ports:
+      - "127.0.0.1:6379:6379"
+  
+  app_ssam:
+    container_name: app_ssam
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env-non-dev
+    depends_on:
+      - postgres
+      - redis
+    command: ["app/docker/app.sh"]
+    ports: 
+      - 7777:8000
+
+  celery:
+    container_name: celery_ssam
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env-non-dev
+    depends_on:
+      - redis
+    command: ["app/docker/celery.sh", "celery"]
+
+  flower:
+    container_name: flower_ssam
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env-non-dev
+    depends_on:
+      - redis
+    command: ["app/docker/celery.sh", "flower"]
+
+volumes:
+  postgres_prod: 

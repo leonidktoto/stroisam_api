@@ -2,30 +2,24 @@ version: '3.9'
 
 services:
   postgres:
-    container_name: pg_db_ssam
+    container_name: pg_db_ssam_dev
     image: postgres:15
+    env_file:
+      - .env
     environment:
-      POSTGRES_PASSWORD: root
-      POSTGRES_USER: root
-      POSTGRES_DB: db_ssam
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: db_dev
     ports:
-      - "127.0.0.1:5433:5432"  # Измените порт хоста на 5433
+      - "127.0.0.1:5433:5432"
     volumes:
-      - ./postgres_data_project_ssam:/var/lib/postgresql/data  # Измените директорию тома
-
-  pgadmin:
-    container_name: pgadmin_ssam
-    image: dpage/pgadmin4:latest
-    environment:
-      PGADMIN_DEFAULT_EMAIL: noemail@noemail.com
-      PGADMIN_DEFAULT_PASSWORD: root
-    ports:
-      - "5051:80"  # Измените порт хоста на 5051
-    depends_on:
-      - postgres
+      - postgres_dev:/var/lib/postgresql/data 
 
   redis:
-    container_name: redis_ssam
+    container_name: redis_ssam_dev
     image: redis:latest
     ports:
-      - "127.0.0.1:6379:6379"  # Измените порт хоста на 6380
+      - "127.0.0.1:6380:6379"
+
+volumes:
+  postgres_dev: 
