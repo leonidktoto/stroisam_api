@@ -7,7 +7,7 @@ class SProducts(BaseModel):
     article: str | None
     category_id: int
     product_name: str
-    description: str
+    description: str | None
     price: int
     stock: int
 
@@ -18,7 +18,7 @@ class SProducts(BaseModel):
 class SProduct(SProducts):
     category_id: int = Field(exclude=True)
     stock: int = Field(exclude=True)
-    description: str = Field(exclude=True)
+    description: str | None = Field(exclude=True)
     image_url: str | None
 
 class SProductsWithAttr(SProducts):
