@@ -39,6 +39,7 @@ class Settings_env(BaseSettings):
     #
     SECRET_KEY: str
     ALGORITM: str
+    HAWK_TOKEN: str
 
     #JWT
     AUTHJWT: AuthJWT = AuthJWT()
