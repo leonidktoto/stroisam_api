@@ -114,17 +114,19 @@ def upgrade():
 def downgrade():
     # Удаление триггера
     op.execute("DROP TRIGGER IF EXISTS trg_update_total_amount ON order_items;")
-    # Удаление функции триггера
-    op.execute("DROP FUNCTION IF EXISTS update_total_amount;")
+    # Удаление функции триггера 
+    op.execute("DROP FUNCTION IF EXISTS update_total_amount CASCADE;")
 
     # Удаление триггера
     op.execute("DROP TRIGGER IF EXISTS update_cart_price_trigger ON products;")
-    # Удаление функции триггера
-    op.execute("DROP FUNCTION IF EXISTS update_cart_price;")
+    # Удаление функции триггера 
+    op.execute("DROP FUNCTION IF EXISTS update_cart_price CASCADE;")
 
     # Удаление триггера
     op.execute("DROP TRIGGER IF EXISTS update_sum_price_trigger_orders_items ON order_items;")
     op.execute("DROP TRIGGER IF EXISTS update_sum_price_trigger_carts ON order_items;")
-    # Удаление функции триггера
-    op.execute("DROP FUNCTION IF EXISTS update_sum_price;")
+    # Удаление функции триггера 
+    op.execute("DROP FUNCTION IF EXISTS update_sum_price CASCADE;")
+    # Удаление orderstatus
+    op.execute("DROP TYPE IF EXISTS orderstatus;")
 
