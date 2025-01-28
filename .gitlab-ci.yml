@@ -10,6 +10,7 @@ variables:
   SECURE_FILES_DOWNLOAD_PATH: './'
   
 before_script:
+  - sed -i 's|https://dl-cdn.alpinelinux.org|https://mirror.yandex.ru|g' /etc/apk/repositories
   - apk update && apk add --no-cache curl
   - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
 
