@@ -7,15 +7,12 @@ stages:
 variables:
   DOCKER_COMPOSE_TEST: "docker-compose --env-file .env.ci_test -f docker-compose-ci_test.yaml"
   DOCKER_COMPOSE_PROD: "docker-compose --env-file .env.ci_prod -f docker-compose-ci_prod.yaml"
-
-
+  SECURE_FILES_DOWNLOAD_PATH: './'
+  
 before_script:
   - apk update && apk add --no-cache curl bash
   - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
-  - echo "Загружаем .env.ci_test"
-  - securefiles download .env.ci_test
-  - echo "Загружаем .env.ci_prod"
-  - securefiles download .env.ci_prod
+
 
 build-job:       
   stage: build_test
