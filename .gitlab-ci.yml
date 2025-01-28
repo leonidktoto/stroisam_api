@@ -14,7 +14,7 @@ before_script:
   - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
 
 
-build-job:       
+build-test-job:       
   stage: build_test
   script:
     - $DOCKER_COMPOSE_TEST build
