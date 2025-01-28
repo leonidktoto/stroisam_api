@@ -1,8 +1,8 @@
 FROM python:3.12.1
 
-RUN mkdir /app
+RUN mkdir /ssam
 
-WORKDIR /app
+WORKDIR /ssam
 
 COPY requirements.txt .
 
@@ -10,5 +10,5 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-RUN chmod a+x app/docker/*.sh
+RUN chmod a+x docker/*.sh
 

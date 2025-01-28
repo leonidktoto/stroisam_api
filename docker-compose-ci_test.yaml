@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: pg_db_test
+    image: postgres:15
+    env_file:
+      - .env.ci_test
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: db_dev
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres_test:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d/ 
+ 
+  redis:
+    container_name: redis_test
+    image: redis:latest
+    env_file:
+      - .env.ci_test
+    ports:
+      - "127.0.0.1:6380:6379"
+
+  app_ssam:
+    container_name: app_test
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env.ci_test
+    depends_on:
+      - postgres
+      - redis
+    command: ["docker/app.sh", "pytest"]
+    ports: 
+      - "8001:8000"
+
+volumes:
+  postgres_test: 
