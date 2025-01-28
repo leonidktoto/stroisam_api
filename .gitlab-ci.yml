@@ -10,6 +10,7 @@ variables:
 
 
 before_script:
+  - apt-get update && apt-get install -y curl bash
   - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
   - echo "Загружаем .env.ci_test"
   - securefiles download .env.ci_test
