@@ -1,7 +1,7 @@
 from os import name
 from typing import Any, Dict
 from fastapi.background import P
-from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader, Template, select_autoescape
 from sqlalchemy.orm import session
 from starlette.requests import Request
 
@@ -34,7 +34,15 @@ from starlette.templating import Jinja2Templates
 from starlette.responses import HTMLResponse
 from starlette.requests import Request
 
-templates = Jinja2Templates(directory="app/adminpanel/templates")
+#templates = Jinja2Templates(directory="app/adminpanel/templates")
+# Создаём объект Jinja2 Environment вручную
+env = Environment(
+    loader=FileSystemLoader("app/adminpanel/templates"),
+    autoescape=select_autoescape(['html', 'xml'])
+)
+
+# Передаём только объект Environment
+templates = Jinja2Templates(env=env)
 
 class CustomModelView(ModelView):
     column_visibility = True
