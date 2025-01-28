@@ -1,31 +1,38 @@
-stages:          # List of stages for jobs, and their order of execution
-  - build
+stages:        
+  - build_test
   - test
-  - deploy
+  - build_deploy
+  - deploy 
 
-build-job:       # This job runs in the build stage, which runs first.
-  stage: build
-  script:
-    - echo "Compiling the code..."
-    - echo "Compile complete."
+variables:
+  DOCKER_COMPOSE_TEST: "docker-compose --env-file .env.ci_test -f docker-compose-ci_test.yaml"
+  DOCKER_COMPOSE_PROD: "docker-compose --env-file .env.ci_prod -f docker-compose-ci_prod.yaml"
 
-unit-test-job:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
+build-job:       
+  stage: build_test
   script:
-    - echo "Running unit tests... This will take about 60 seconds."
-    - sleep 60
-    - echo "Code coverage is 90%"
+    - echo "Загрузка .env.ci_test из Secure Files"
+    - securefiles download .env.ci_test
+    - $DOCKER_COMPOSE_TEST build
 
-lint-test-job:   # This job also runs in the test stage.
-  stage: test    # It can run at the same time as unit-test-job (in parallel).
+test-job:
+  stage: test
   script:
-    - echo "Linting code... This will take about 10 seconds."
-    - sleep 10
-    - echo "No lint issues found."
+    - echo "Запуск тестовых контейнеров"
+    - echo "Выполнение тестов"
+    - $DOCKER_COMPOSE_TEST up -d
+    - echo "Остановка контейнеров после тестов"
+    - $DOCKER_COMPOSE_TEST down --volumes --remove-orphans
 
-deploy-job:      # This job runs in the deploy stage.
-  stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
-  environment: production
+build-deploy-job:
+  stage: build_deploy
   script:
-    - echo "Deploying application..."
-    - echo "Application successfully deployed."
+    - echo "Загрузка .env.ci_prod из Secure Files"
+    - securefiles download .env.ci_prod
+    - $DOCKER_COMPOSE_PROD build
+
+deploy-job:
+  stage: deploy
+  script:
+    - echo "Запуск контейнеров в продакшене"
+    - $DOCKER_COMPOSE_PROD up -d
