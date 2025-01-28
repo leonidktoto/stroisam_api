@@ -10,6 +10,7 @@ variables:
   SECURE_FILES_DOWNLOAD_PATH: './'
   
 before_script:
+  - apt-get update && apt-get install -y curl bash
   - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
 
 
