@@ -8,11 +8,17 @@ variables:
   DOCKER_COMPOSE_TEST: "docker-compose --env-file .env.ci_test -f docker-compose-ci_test.yaml"
   DOCKER_COMPOSE_PROD: "docker-compose --env-file .env.ci_prod -f docker-compose-ci_prod.yaml"
 
+
+before_script:
+  - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+  - echo "Загружаем .env.ci_test"
+  - securefiles download .env.ci_test
+  - echo "Загружаем .env.ci_prod"
+  - securefiles download .env.ci_prod
+
 build-job:       
   stage: build_test
   script:
-    - echo "Загрузка .env.ci_test из Secure Files"
-    - securefiles download .env.ci_test
     - $DOCKER_COMPOSE_TEST build
 
 test-job:
@@ -27,12 +33,10 @@ test-job:
 build-deploy-job:
   stage: build_deploy
   script:
-    - echo "Загрузка .env.ci_prod из Secure Files"
-    - securefiles download .env.ci_prod
     - $DOCKER_COMPOSE_PROD build
 
 deploy-job:
   stage: deploy
   script:
-    - echo "Запуск контейнеров в продакшене"
+    - echo "Запуск контейнеров в prod"
     - $DOCKER_COMPOSE_PROD up -d
