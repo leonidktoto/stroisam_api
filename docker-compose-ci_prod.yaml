@@ -10,7 +10,8 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres_prod:/var/lib/postgresql/data
-    #  - ./init-scripts:/docker-entrypoint-initdb.d/ 
+    #  - ./init-scripts:/docker-entrypoint-initdb.d/
+    network_mode: "host"
 
   redis:
     container_name: redis_prod
@@ -19,6 +20,7 @@ services:
     image: redis:latest
     ports:
       - "127.0.0.1:6379:6379"
+    network_mode: "host"
   
   app_ssam:
     container_name: app_prod
@@ -33,6 +35,7 @@ services:
     command: ["docker/app.sh", "gunicorn"]
     ports: 
       - "7777:8000"
+    network_mode: "host"
 
   celery:
     container_name: celery_prod
@@ -44,6 +47,7 @@ services:
     depends_on:
       - redis
     command: ["docker/celery.sh", "celery"]
+    network_mode: "host"
 
   flower:
     container_name: flower_prod
@@ -55,6 +59,7 @@ services:
     depends_on:
       - redis
     command: ["docker/celery.sh", "flower"]
+    network_mode: "host"
 
 volumes:
   postgres_prod: 
