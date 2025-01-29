@@ -14,7 +14,8 @@ services:
       - "127.0.0.1:5433:5432"
     volumes:
       - postgres_test:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d/ 
+      - ./init-scripts:/docker-entrypoint-initdb.d/
+    network_mode: "host"
  
   redis:
     container_name: redis_test
@@ -23,6 +24,7 @@ services:
       - .env.ci_test
     ports:
       - "127.0.0.1:6380:6379"
+    network_mode: "host"
 
   app_ssam:
     container_name: app_test
@@ -37,6 +39,7 @@ services:
     command: ["docker/app.sh", "pytest"]
     ports: 
       - "8001:8000"
+    network_mode: "host"
 
 volumes:
   postgres_test: 
