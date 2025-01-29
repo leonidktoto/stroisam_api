@@ -10,7 +10,8 @@ variables:
   SECURE_FILES_DOWNLOAD_PATH: './'
   
 before_script:
-  - apt-get update && apt-get install -y curl bash
+  - echo "http://mirror.yandex.ru/mirrors/alpine/v3.21/main" > /etc/apk/repositories
+  - apk update && apk add --no-cache curl
   - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
 
 
