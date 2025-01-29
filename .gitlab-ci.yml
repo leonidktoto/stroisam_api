@@ -11,7 +11,7 @@ variables:
   
 before_script:
   - echo "http://mirror.yandex.ru/mirrors/alpine/v3.21/main" > /etc/apk/repositories
-  - apk update && apk add --no-cache curl
+  - apk update && apk add --no-cache curl bash
   - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
 
 
