@@ -9,7 +9,6 @@ from smsaero import SmsAeroException
 
 from app.users.helpers import generate_sms_code, send_new_sms_code
 from app.config import Settings_env
-from app.sms_aero import send_sms_api
 from app.users.dao import UsersDAO
 from app.users.models import Users
 from app.exceptions import (
