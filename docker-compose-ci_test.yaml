@@ -9,12 +9,11 @@ services:
     environment:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_USER: ${DB_USER}
-      POSTGRES_DB: db_dev
+      POSTGRES_DB: db_test
     ports:
       - "127.0.0.1:5433:5432"
     volumes:
       - postgres_test:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d/
  
   redis:
     container_name: redis_test
