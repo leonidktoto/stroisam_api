@@ -19,6 +19,7 @@ before_script:
 build-test-job:       
   stage: build_test
   script:
+    - $DOCKER_COMPOSE_TEST down --volumes --remove-orphans
     - $DOCKER_COMPOSE_TEST build
 
 test-job:
@@ -30,13 +31,13 @@ test-job:
     - echo "Остановка контейнеров после тестов"
     - $DOCKER_COMPOSE_TEST down --volumes --remove-orphans
 
-build-deploy-job:
-  stage: build_deploy
-  script:
-    - $DOCKER_COMPOSE_PROD build
-
-deploy-job:
-  stage: deploy
-  script:
-    - echo "Запуск контейнеров в prod"
-    - $DOCKER_COMPOSE_PROD up -d
+#build-deploy-job:
+#  stage: build_deploy
+#  script:
+#    - $DOCKER_COMPOSE_PROD build
+#
+#deploy-job:
+#  stage: deploy
+#  script:
+#    - echo "Запуск контейнеров в prod"
+#    - $DOCKER_COMPOSE_PROD up -d
