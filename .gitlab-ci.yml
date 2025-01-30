@@ -26,10 +26,10 @@ test:
   script:
     - echo "Запуск контейнеров и тестовой бд"
     - docker-compose -f docker-compose-ci_prod.yaml up postgres redis -d
-    - sleep(30)
+    - sleep 30
     - echo "Выполнение миграции"
     - docker-compose -f docker-compose-ci_prod.yaml run --rm app_ssam alembic upgrade head -v
-    - sleep(10)
+    - sleep 10
     - echo "Выполнение тестов"
     - docker-compose -f docker-compose-ci_prod.yaml run --rm app_ssam docker/app.sh pytest 
   only:
