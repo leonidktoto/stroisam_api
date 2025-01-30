@@ -8,7 +8,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_prod:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d/
+      - "$CI_PROJECT_DIR/init-scripts:/docker-entrypoint-initdb.d/"
 
   redis:
     container_name: redis_prod
