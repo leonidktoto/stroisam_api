@@ -56,6 +56,7 @@ def create_app(
         docs_url = None if create_custom_static_urls else "/docs",
         redoc_url = None if create_custom_static_urls else "/redoc",
         root_path="/api",
+        root_path_in_servers=False,
         lifespan=lifespan
     )
     if create_custom_static_urls:
