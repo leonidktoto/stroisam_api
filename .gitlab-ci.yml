@@ -26,6 +26,8 @@ test:
   script:
     - echo "Запуск контейнеров и тестовой бд"
     - docker-compose -f docker-compose-ci_prod.yaml up postgres redis -d
+    - echo "Выполнение миграции"
+    - docker-compose -f docker-compose-ci_prod.yaml run --rm app_ssam alembic upgrade head
     - echo "Выполнение тестов"
     - docker-compose -f docker-compose-ci_prod.yaml run --rm app_ssam docker/app.sh pytest
   only:
