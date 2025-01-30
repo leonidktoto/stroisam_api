@@ -55,6 +55,7 @@ def create_app(
     app = FastAPI(
         docs_url = None if create_custom_static_urls else "/docs",
         redoc_url = None if create_custom_static_urls else "/redoc",
+        root_path="/api",
         lifespan=lifespan
     )
     if create_custom_static_urls:
