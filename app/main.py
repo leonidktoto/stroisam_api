@@ -28,13 +28,13 @@ app = create_app(create_custom_static_urls=True)
 class JWTAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Проверяем, начинается ли путь с "/admin"
-        if request.url.path.startswith("/admin") and not request.url.path.startswith("/admin/login"):
+        if request.url.path.startswith("/api/admin") and not request.url.path.startswith("/api/admin/login"):
             # Получаем токен из cookies
             token = request.cookies.get("access_token_cookie")
             
             # Если токена нет, перенаправляем на страницу логина
             if not token:
-                return RedirectResponse(url='/admin/login')
+                return RedirectResponse(url='/api/admin/login')
         
         # Если токен найден или это не /admin, продолжаем выполнение запроса
         response = await call_next(request)
