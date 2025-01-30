@@ -17,7 +17,7 @@ build:
   stage: build
   script:
     - echo "Билд приложения fastapi" 
-    - docker-compose -f docker-compose-prod.yaml build app_ssam
+    - docker-compose -f docker-compose-ci_prod.yaml build app_ssam
   only:
     - main
 
@@ -25,9 +25,9 @@ test:
   stage: test
   script:
     - echo "Запуск контейнеров и тестовой бд"
-    - docker-compose -f docker-compose-prod.yaml up postgres redis -d
+    - docker-compose -f docker-compose-ci_prod.yaml up postgres redis -d
     - echo "Выполнение тестов"
-    - docker-compose -f docker-compose.yaml run --rm app_ssam docker/app.sh pytest
+    - docker-compose -f docker-compose-ci_prod.yaml run --rm app_ssam docker/app.sh pytest
   only:
     - main
 
@@ -35,7 +35,7 @@ deploy:
   stage: deploy
   script:
     - echo "Деплой"
-    - docker compose --env-file .env.ci_prod -f docker-compose-prod.yaml up -d
+    - docker compose --env-file .env.ci_prod -f docker-compose-ci_prod.yaml up -d
   only:
     - main
   when: on_success
