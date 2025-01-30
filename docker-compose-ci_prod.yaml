@@ -5,7 +5,7 @@ services:
     env_file:
       - .env.ci_prod
     ports:
-      - "127.0.0.1:5432:5432"
+      - "5432:5432"
     volumes:
       - postgres_prod:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d/
@@ -16,7 +16,7 @@ services:
       - .env.ci_prod
     image: redis:latest
     ports:
-      - "127.0.0.1:6379:6379"
+      - "6379:6379"
   
   app_ssam:
     container_name: app_prod
@@ -30,7 +30,7 @@ services:
       - .env.ci_prod
     command: ["docker/app.sh", "gunicorn"]
     ports: 
-      - "7777:8000"
+      - "8000:8000"
 
   celery:
     container_name: celery_prod
