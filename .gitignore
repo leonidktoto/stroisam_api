@@ -2,9 +2,6 @@
 .venv/
 __pycache__/
 postgres_data_project_ssam/
-app/migrations/versions/
-app/migrations/README
-app/migrations/script.py.mako
 11.html
 test.py
 testsms.py
