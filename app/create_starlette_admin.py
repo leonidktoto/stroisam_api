@@ -34,7 +34,7 @@ def create_admin() -> Admin:
     admin = Admin(
     sync_engine, 
     title="Панель администратора", 
-    base_url = "/admin",
+    base_url = "/api/admin",
     i18n_config = I18nConfig(default_locale="ru"),
     auth_provider=MyAuthProvider(allow_routes=["app/adminpanel/statics/logo.svg"]),
     middlewares=[],#[Middleware(SessionMiddleware, secret_key="123")],

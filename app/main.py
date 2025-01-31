@@ -31,7 +31,6 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         if request.url.path.startswith("/api/admin") and not request.url.path.startswith("/api/admin/login"):
             # Получаем токен из cookies
             token = request.cookies.get("access_token_cookie")
-            
             # Если токена нет, перенаправляем на страницу логина
             if not token:
                 return RedirectResponse(url='/api/admin/login')
