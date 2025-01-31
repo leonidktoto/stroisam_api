@@ -33,7 +33,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             token = request.cookies.get("access_token_cookie")
             # Если токена нет, перенаправляем на страницу логина
             if not token:
-                return RedirectResponse(url='/api/admin/login')
+                return RedirectResponse(url='/admin/login')
         
         # Если токен найден или это не /admin, продолжаем выполнение запроса
         response = await call_next(request)
