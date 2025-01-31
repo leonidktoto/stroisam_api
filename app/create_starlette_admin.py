@@ -41,6 +41,7 @@ def create_admin() -> Admin:
     templates_dir="app/adminpanel/templates",
     )
 
+
     custom_view = AddProductView(path="/add_product", label="Добавить новый товар", icon="fa fa-plus")
     admin.add_view(custom_view)
 
