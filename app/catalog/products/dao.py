@@ -171,7 +171,7 @@ class ProductsDAO(BaseDAO):
                 .select_from(Products)
                 .join(ProductAttributes, Products.id == ProductAttributes.product_id, isouter=True)
                 .join(Attributes, ProductAttributes.attribute_name_id == Attributes.id, isouter=True)
-                .where(Products.category_id == id)
+                .where(Products.category_id == id, Attributes.filtered == True)
                 .group_by(Attributes.attribute_name)
             )
             print("!!!!!!@@@@@@@@@@!!!!!!!!!!@@@@@@@@@@@@!!!!!!!!!!!")
