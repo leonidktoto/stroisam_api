@@ -9,7 +9,7 @@ from starlette.requests import Request
 class Products(Base):
     __tablename__ = "products"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    article: Mapped[str] = mapped_column(index=True, nullable=True, unique=True)
+    article: Mapped[str] = mapped_column(index=True, nullable=True)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
     product_name: Mapped[str] = mapped_column(nullable=False, index=True)
     description: Mapped[str] = mapped_column(nullable=True)
