@@ -72,7 +72,7 @@ async def add_product_form(
     stock: int = Form(..., gt=0, le=999999999),
     description: str = Form("", max_length=2000),
     attributes: List[str] = Form([]),
-    attribute_values: List[str] = Form([], max_length=255),
+    attribute_values: List[str] = Form([], max_length=2000),
     images: list[UploadFile] = File([]),
     user: SUsers = Depends(get_admin_active_auth_user)
 ):
@@ -121,7 +121,7 @@ async def add_product_form(
                     logo = True if image.filename and image.filename.startswith("logo.") else False
                     await ProductImagesDAO.add_data(product_id=product.id, image_url=image_url, logo=logo)
 
-        return RedirectResponse(url="/admin/add_product", status_code=303)
+        return RedirectResponse(url="api/admin/add_product", status_code=303)
 
     except Exception as e:
         if product:
