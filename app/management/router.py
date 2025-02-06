@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Union
 from fastapi import APIRouter, Depends, File, Form, Query, Request, Response, UploadFile, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from PIL import Image
@@ -48,12 +48,12 @@ async def upload_image(
     user: SUsers = Depends(get_admin_active_auth_user)
 ):
     result = {}
+  
     if images:
-        print("23456ytrewdrfghygtr54r3ewfdv")
-        for image in images:
-
-            image_url = load_images_to_s3(file=image, file_dir=file_dir)
-            result[image.filename] = image_url
+        if images[0].filename!='':
+            for image in images:
+                image_url = load_images_to_s3(file=image, file_dir=file_dir)
+                result[image.filename] = image_url
     print(result)
     return result
             
@@ -73,7 +73,7 @@ async def add_product_form(
     description: str = Form("", max_length=2000),
     attributes: List[str] = Form([]),
     attribute_values: List[str] = Form([], max_length=2000),
-    images: list[UploadFile] = File([]),
+    images: list[UploadFile] = File(None),
     user: SUsers = Depends(get_admin_active_auth_user)
 ):
     product = None 
@@ -105,23 +105,24 @@ async def add_product_form(
                     attribute_value=value
                 )
 
-        # Получение категории и добавление изображений
-        category = await CategoriesDAO.find_by_id(category_id)
-        if category:
-            category_name = category.category_name
+        # Получение категории и добавление изображений    
+        if images[0].filename!='': #Проверим на пустое значение из формы
+            category = await CategoriesDAO.find_by_id(category_id)
+            if category:
+                category_name = category.category_name
 
-            if images:
-                for image in images:
-         
-                    image_url = load_images_to_s3(
-                        file=image,
-                        file_dir=category_name,
-                        product_id=product.id
-                    )
-                    logo = True if image.filename and image.filename.startswith("logo.") else False
-                    await ProductImagesDAO.add_data(product_id=product.id, image_url=image_url, logo=logo)
+                if images:
+                    for image in images:
+            
+                        image_url = load_images_to_s3(
+                            file=image,
+                            file_dir=category_name,
+                            product_id=product.id
+                        )
+                        logo = True if image.filename and image.filename.startswith("logo.") else False
+                        await ProductImagesDAO.add_data(product_id=product.id, image_url=image_url, logo=logo)
 
-        return RedirectResponse(url="api/admin/add_product", status_code=303)
+        return RedirectResponse(url="/api/admin/add_product", status_code=303)
 
     except Exception as e:
         if product:

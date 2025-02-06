@@ -48,7 +48,24 @@ def resize_and_crop_image(image: Image.Image, size: tuple) -> BytesIO:
     bottom = top + target_height
     
     cropped_image = resized_image.crop((left, top, right, bottom))
-    
+
+    # Если изображение имеет прозрачный фон (альфа-канал), заменяем его на белый
+    if cropped_image.mode in ('RGBA', 'LA'):
+        # Создаем белый фон
+        white_bg = Image.new('RGB', cropped_image.size, (255, 255, 255))
+        # Вставляем изображение с прозрачностью на белый фон
+        white_bg.paste(cropped_image, mask=cropped_image.split()[-1])  # Используем альфа-канал как маску
+        cropped_image = white_bg
+    elif cropped_image.mode == 'P' and 'transparency' in cropped_image.info:
+        # Обработка палитровых изображений с прозрачностью
+        cropped_image = cropped_image.convert('RGBA')  # Конвертируем в RGBA для работы с альфа-каналом
+        white_bg = Image.new('RGB', cropped_image.size, (255, 255, 255))
+        white_bg.paste(cropped_image, mask=cropped_image.split()[-1])
+        cropped_image = white_bg
+    else:
+        # Если изображение не имеет прозрачности, просто конвертируем в RGB
+        cropped_image = cropped_image.convert('RGB')
+
     # Сохранение результата в байтовый поток
     img_byte_arr = BytesIO()
     cropped_image.save(img_byte_arr, format='JPEG')
