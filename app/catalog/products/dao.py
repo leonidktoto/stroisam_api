@@ -14,7 +14,7 @@ class ProductsDAO(BaseDAO):
     model = Products
 
     @classmethod
-    async def find_products_by_category_id(cls, category_id: int):
+    async def find_products(cls, category_id: int | None = None, search: str | None = None):
         async with async_session_maker() as session:
             # Подзапрос для фильтрации изображений с logo = True
             subquery = (
@@ -35,8 +35,12 @@ class ProductsDAO(BaseDAO):
                     Products.stock, 
                     subquery.c.image_url)
                 .join(subquery, Products.id == subquery.c.product_id, isouter=True)
-                .where(Products.category_id == category_id)
             )
+
+            if category_id:
+                query = query.where(Products.category_id == category_id)
+            if search:
+                query = query.where(Products.product_name.ilike(f"%{search}%"))
 
             result = await session.execute(query)
             return result.mappings().all()
@@ -179,5 +183,12 @@ class ProductsDAO(BaseDAO):
             result = await session.execute(query)
             return result.mappings().all()
 
+    @classmethod
+    async def get_autocomplete(cls, search: str):
+        async with async_session_maker() as session:
+            query = (select(Products.product_name)
+                .where(Products.product_name.ilike(f"{search}%")).limit(10))
 
-        
+            result = await session.execute(query)
+            suggestions = result.scalars().all()
+            return [{"product_name": name} for name in suggestions]

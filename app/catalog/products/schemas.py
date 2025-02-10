@@ -30,3 +30,6 @@ class SProductsWithAttr(SProducts):
 class SAttributeValues(BaseModel):
     attribute_name: str
     attribute_value: List[str]
+
+class SProduct_name(BaseModel):
+    product_name: str
