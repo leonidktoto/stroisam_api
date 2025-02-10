@@ -12,7 +12,7 @@ class AuthJWT(BaseModel):
     algorithm: str = "RS256" 
     access_token_expire_minutes: int = 10
     refresh_token_expire_days: int = 30
-    browser_token_lifetime: int = 700
+    admin_access_token_expire_minuts: int = 700
 
 print(BASE_DIR)
 
