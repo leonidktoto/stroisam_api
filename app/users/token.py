@@ -53,8 +53,7 @@ def auth_user_set_cookie(response: Response, token_type: str, token: str):
     payload=auth.decode_jwt(token=token)
     exp = payload.get('exp')
     iat = payload.get('iat')
-    difference_minutes = (exp - iat) / 60
-    max_age = difference_minutes*60
+    max_age = (exp - iat)
 
     response.set_cookie(
         token_type, 
