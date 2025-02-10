@@ -103,7 +103,7 @@ def load_images_to_s3(file: UploadFile, file_dir: str, product_id: int | None = 
             if product_id:
                 dir_image = f"media/products/{file_dir}/{product_id}/{filename}"
             else:
-                dir_image = f"media/{file_dir}/{filename}"
+                dir_image = f"media/products/{file_dir}/{filename}"
                 image_dir_list.append(f"{settings.ENDPOINT_URL}/{settings.BUCKET_NAME}/{dir_image}_{size_name}.jpeg")
 
             dir_for_backet=f"{dir_image}_{size_name}.jpeg"
@@ -111,7 +111,7 @@ def load_images_to_s3(file: UploadFile, file_dir: str, product_id: int | None = 
             s3.upload_fileobj(
                 resized_image,
                 settings.BUCKET_NAME,
-                dir_for_backet,
+                dir_for_backet,i
                 ExtraArgs={"ContentType": "image/jpeg"}
             )
         if product_id:
