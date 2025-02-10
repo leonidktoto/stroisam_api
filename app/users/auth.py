@@ -11,7 +11,8 @@ def encode_jwt(
     private_key: str = settings.AUTHJWT.private_key_path.read_text(),
     algorithm: str = settings.AUTHJWT.algorithm,
     expire_minutes: int =settings.AUTHJWT.access_token_expire_minutes,
-    expire_timedelta: timedelta | None = None
+    expire_timedelta: timedelta | None = None,
+    admin_access_expire_minuts: int = settings.AUTHJWT.access_token_expire_minutes,
 ):
     to_encode = payload.copy()
     now = datetime.now(timezone.utc)
@@ -22,7 +23,7 @@ def encode_jwt(
         expire = now + timedelta(minutes=expire_minutes)
         
     if payload.get("type") == "access" and payload.get("role") == 2:
-        expire = now + timedelta(minutes=120)
+        expire = now + timedelta(minutes=admin_access_expire_minuts)
             
 
     to_encode.update(

@@ -44,7 +44,7 @@ class MyAuthProvider(AuthProvider):
             raise  LoginFailed("admin validation error")
 
         access_token = create_access_token(user)
-        auth_user_set_cookie(response, ACCESS_TOKEN_TYPE, access_token)
+        auth_user_set_cookie(response, ACCESS_TOKEN_TYPE, access_token, True)
         return response
 
             

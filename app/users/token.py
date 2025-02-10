@@ -47,11 +47,15 @@ def create_refresh_token(user: SUsers) -> str:
         expire_timedelta = timedelta(days=settings.AUTHJWT.refresh_token_expire_days)
         )
 
-def auth_user_set_cookie(response: Response, token_type: str, token: str):
+def auth_user_set_cookie(response: Response, token_type: str, token: str, admin: bool = False):
 
     max_age = 0
     if token_type == ACCESS_TOKEN_TYPE:
-        max_age = settings.AUTHJWT.access_token_expire_minutes*60
+        if admin:
+            max_age = settings.AUTHJWT.admin_access_token_expire_minuts*60
+        else: 
+            max_age = settings.AUTHJWT.access_token_expire_minutes*60
+            
     if token_type == REFRESH_TOKEN_TYPE:
         max_age = settings.AUTHJWT.access_token_expire_minutes*1440*60
 
