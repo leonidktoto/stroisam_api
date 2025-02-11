@@ -37,10 +37,13 @@ class ProductsDAO(BaseDAO):
                 .join(subquery, Products.id == subquery.c.product_id, isouter=True)
             )
 
-            if category_id:
+            if category_id is not None:
                 query = query.where(Products.category_id == category_id)
-            if search:
+            if search is not None:
                 query = query.where(Products.product_name.ilike(f"%{search}%"))
+
+            print("!!!!!!@@@@@@@@@@!!!!!!!!!!@@@@@@@@@@@@!!!!!!!!!!!")
+            print(query.compile(compile_kwargs={"literal_binds": True}))
 
             result = await session.execute(query)
             return result.mappings().all()
