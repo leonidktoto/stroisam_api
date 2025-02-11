@@ -45,7 +45,7 @@ async def test_find_subcategory(category_id,expected_response):
 
 @pytest.mark.asyncio
 async def test_find_products_by_category_id():
-    result = await ProductsDAO.find_products_by_category_id(25)
+    result = await ProductsDAO.find_products(category_id=25)
     assert len(result) == 10
     assert result[0]["id"] == 10
     assert result[0]["image_url"] == None
