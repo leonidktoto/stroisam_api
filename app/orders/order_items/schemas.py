@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class SOrderItems(BaseModel):
     id: int
     product_id: int

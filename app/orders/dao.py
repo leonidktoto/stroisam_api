@@ -1,10 +1,8 @@
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
+
 from app.DAO.base import BaseDAO
-from app.carts.models import Carts
-from app.orders.models import Orders
 from app.database import async_session_maker
-from app.orders.order_items.models import OrderItems
+from app.orders.models import Orders
 
 
 class OrdersDAO(BaseDAO):
@@ -12,12 +10,12 @@ class OrdersDAO(BaseDAO):
 
     @classmethod
     async def find_user_orders(
-        cls, 
+        cls,
         user_id,
-        start_date = None,
-        end_date = None,
-        status = None,
-        ):
+        start_date=None,
+        end_date=None,
+        status=None,
+    ):
         async with async_session_maker() as session:
             query = select(Orders).where(Orders.user_id == user_id)
             if start_date:
@@ -26,6 +24,5 @@ class OrdersDAO(BaseDAO):
                 query = query.where(Orders.order_date <= end_date)
             if status:
                 query = query.where(Orders.order_status == status)
-            result = await session.execute(query)    
+            result = await session.execute(query)
             return result.scalars().all()
-        

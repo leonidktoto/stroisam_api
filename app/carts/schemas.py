@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class SCarts(BaseModel):
     id: int
     product_id: int
@@ -8,12 +9,15 @@ class SCarts(BaseModel):
     sum_price: int | None
     user_id: int
 
+
 class SItemProduct(BaseModel):
     product_id: int
     quantity: int
 
+
 class SItemQuantityUpdate(BaseModel):
     quantity: int
+
 
 class SUserCart(BaseModel):
     id: int
@@ -23,5 +27,3 @@ class SUserCart(BaseModel):
     quantity: int
     price: int
     sum_price: int
-
-    

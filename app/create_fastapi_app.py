@@ -1,14 +1,17 @@
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
 from fastapi.openapi.docs import (
+    get_redoc_html,
     get_swagger_ui_html,
-     get_swagger_ui_oauth2_redirect_html,
-     get_redoc_html
-     )
+    get_swagger_ui_oauth2_redirect_html,
+)
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
+
 from app.config import settings
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,6 +21,7 @@ async def lifespan(app: FastAPI):
     keys = await redis.keys("*cache*")
     for key in keys:
         await redis.delete(key)
+
 
 def register_static_docs_routes(app: FastAPI):
     @app.get("/docs", include_in_schema=False)
@@ -49,15 +53,13 @@ def register_static_docs_routes(app: FastAPI):
         )
 
 
-def create_app(
-    create_custom_static_urls: bool = False
-) -> FastAPI:
+def create_app(create_custom_static_urls: bool = False) -> FastAPI:
     app = FastAPI(
-        docs_url = None if create_custom_static_urls else "/docs",
-        redoc_url = None if create_custom_static_urls else "/redoc",
+        docs_url=None if create_custom_static_urls else "/docs",
+        redoc_url=None if create_custom_static_urls else "/redoc",
         root_path="/api",
-        #root_path_in_servers=False,
-        lifespan=lifespan
+        # root_path_in_servers=False,
+        lifespan=lifespan,
     )
     if create_custom_static_urls:
         register_static_docs_routes(app)

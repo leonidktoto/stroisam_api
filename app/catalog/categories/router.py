@@ -1,13 +1,11 @@
-from typing import List
 from fastapi import APIRouter
-from app.catalog.categories.dao import CategoriesDAO
-from app.catalog.categories.schemas import SCategories, SCategoriesWithChldrn
 from fastapi_cache.decorator import cache
 
-router=APIRouter(
-    prefix="/categories",
-    tags=["Категории товаров"]
-)
+from app.catalog.categories.dao import CategoriesDAO
+from app.catalog.categories.schemas import SCategoriesWithChldrn
+
+router = APIRouter(prefix="/categories", tags=["Категории товаров"])
+
 
 @router.get("/main", response_model=list[SCategoriesWithChldrn])
 @cache(expire=60)

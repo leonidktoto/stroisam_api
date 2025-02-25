@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field
-#from app.catalog.product_images.schemas import SProductImages
+# from app.catalog.product_images.schemas import SProductImages
 from typing import List
+
+from pydantic import BaseModel, Field
+
 
 class SProducts(BaseModel):
     id: int
@@ -13,7 +15,7 @@ class SProducts(BaseModel):
 
     class ConfigDict:
         from_attributes = True
-    
+
 
 class SProduct(SProducts):
     category_id: int = Field(exclude=True)
@@ -21,15 +23,18 @@ class SProduct(SProducts):
     description: str | None = Field(exclude=True)
     image_url: str | None
 
+
 class SProductsWithAttr(SProducts):
     category_id: int = Field(exclude=True)
     stock: int = Field(exclude=True)
     product_attributes: list[dict | None]
     image_urls: list[str | None]
 
+
 class SAttributeValues(BaseModel):
     attribute_name: str
     attribute_value: List[str]
+
 
 class SProduct_name(BaseModel):
     product_name: str

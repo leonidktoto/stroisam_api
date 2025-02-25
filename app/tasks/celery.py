@@ -1,9 +1,9 @@
 from celery import Celery
+
 from app.config import settings
 
-
 # Ваша текущая конфигурация Celery
-celery_app = Celery('tasks')
+celery_app = Celery("tasks")
 
 celery_app.conf.update(
     broker_url=settings.REDIS_URL,
@@ -13,5 +13,3 @@ celery_app.conf.update(
     result_expires=3600,  # Результаты хранятся 1 час
     include=["app.tasks.tasks"],
 )
-
-

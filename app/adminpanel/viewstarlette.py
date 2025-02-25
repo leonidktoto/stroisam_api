@@ -1,48 +1,44 @@
-from os import name
-from typing import Any, Dict
-from fastapi.background import P
-from jinja2 import Environment, FileSystemLoader, Template, select_autoescape
-from sqlalchemy.orm import session
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from sqlalchemy import String, cast, or_
 from starlette.requests import Request
-
-
-from starlette_admin import BaseField, CustomView, DateTimeField, EmailField, EnumField, PasswordField, PhoneField, RelationField, URLField
+from starlette.responses import HTMLResponse
+from starlette.templating import Jinja2Templates
+from starlette_admin import (
+    BooleanField,
+    CustomView,
+    DateTimeField,
+    EmailField,
+    EnumField,
+    HasMany,
+    HasOne,
+    IntegerField,
+    PhoneField,
+    StringField,
+    URLField,
+)
 from starlette_admin.contrib.sqla import ModelView
-
 
 from app.carts.models import Carts
 from app.catalog.attributes.dao import AttributesDAO
-from app.catalog.attributes.models import Attributes
 from app.catalog.categories.dao import CategoriesDAO
-from app.catalog.categories.models import Categories 
-from app.catalog.product_attributes.models import ProductAttributes
-from app.catalog.product_images.models import ProductImages
+from app.catalog.categories.models import Categories
 from app.catalog.products.models import Products
-
-from starlette_admin import IntegerField, StringField, HasOne, HasMany,BooleanField
-
-from app.orders.models import OrderStatus, Orders
+from app.orders.models import Orders, OrderStatus
 from app.orders.order_items.models import OrderItems
 from app.users.models import Users
 from app.users.sms_codes.models import SmsCodes
 from app.users.type_user.models import TypeUser
-from sqlalchemy import String, cast, or_
-from sqlalchemy.orm import query
-from app.database import sync_session
 
-from starlette.templating import Jinja2Templates
-from starlette.responses import HTMLResponse
-from starlette.requests import Request
-
-#templates = Jinja2Templates(directory="app/adminpanel/templates")
+# templates = Jinja2Templates(directory="app/adminpanel/templates")
 # Создаём объект Jinja2 Environment вручную
 env = Environment(
     loader=FileSystemLoader("app/adminpanel/templates"),
-    autoescape=select_autoescape(['html', 'xml'])
+    autoescape=select_autoescape(["html", "xml"]),
 )
 
 # Передаём только объект Environment
 templates = Jinja2Templates(env=env)
+
 
 class CustomModelView(ModelView):
     column_visibility = True
@@ -50,16 +46,17 @@ class CustomModelView(ModelView):
     responsive_table = False
     save_state = True
 
+
 class UserPhoneField(StringField):
     def get_value(self, instance):
         return instance.user.phone if instance.user else None
 
-class CategoriesView(CustomModelView):  
-    name='категорию'
-    label='Категории'
+
+class CategoriesView(CustomModelView):
+    name = "категорию"
+    label = "Категории"
     icon = "fa-solid fa-tags"
-    
-    
+
     fields = [
         IntegerField(
             name="id",
@@ -69,7 +66,7 @@ class CategoriesView(CustomModelView):
             name="parent",
             label="Родительская категория",
             identity="categories",
-          #  multiple=False,
+            #  multiple=False,
         ),
         StringField(
             name="article",
@@ -96,15 +93,16 @@ class CategoriesView(CustomModelView):
             multiple=True,
         ),
     ]
-    
-    exclude_fields_from_list = [ Categories.children, Categories.products]
-    exclude_fields_from_edit =[ Categories.children]
+
+    exclude_fields_from_list = [Categories.children, Categories.products]
+    exclude_fields_from_edit = [Categories.children]
     exclude_fields_from_create = [Categories.children, Categories.products]
     searchable_fields = [Categories.category_name]
-    
-class ProductImagesView(CustomModelView): 
-    name='изображение'
-    label='Изображения товаров'
+
+
+class ProductImagesView(CustomModelView):
+    name = "изображение"
+    label = "Изображения товаров"
     icon = "fa-solid fa-tags"
 
     fields = [
@@ -116,14 +114,11 @@ class ProductImagesView(CustomModelView):
             name="description",
             label="Описание",
         ),
-        BooleanField(
-            name="logo",
-            label="Логотип"
-        ),
+        BooleanField(name="logo", label="Логотип"),
         URLField(
             name="image_url",
             label="Изображение (URL ссылка)",
-        ), 
+        ),
         HasOne(
             name="product",
             label="Товары",
@@ -131,15 +126,14 @@ class ProductImagesView(CustomModelView):
         ),
     ]
 
-    #exclude_fields_from_list = [ProductImages.products]
-    #exclude_fields_from_create = [ProductImages.products]
-   
+    # exclude_fields_from_list = [ProductImages.products]
+    # exclude_fields_from_create = [ProductImages.products]
+
 
 class ProductsView(CustomModelView):
-    name="товар"
-    label="Товары"
+    name = "товар"
+    label = "Товары"
     icon = "fa-solid fa-tags"
-
 
     fields = [
         IntegerField(
@@ -157,7 +151,7 @@ class ProductsView(CustomModelView):
         StringField(
             name="description",
             label="Описание",
-        ), 
+        ),
         HasOne(
             name="category",
             label="Категория",
@@ -182,15 +176,15 @@ class ProductsView(CustomModelView):
             identity="product-attributes",
         ),
     ]
-    #exclude_fields_from_list = [ProductImages.products]
+    # exclude_fields_from_list = [ProductImages.products]
     exclude_fields_from_create = [Products.product_attribute, Products.image]
-    exclude_fields_from_edit =[Products.product_attribute, Products.image]
-    list_template="custom_list.html"
+    exclude_fields_from_edit = [Products.product_attribute, Products.image]
+    list_template = "custom_list.html"
 
 
 class AttributesView(CustomModelView):
-    name="атрибут"
-    label="Атрибуты"
+    name = "атрибут"
+    label = "Атрибуты"
     icon = "fa-solid fa-tags"
     fields = [
         IntegerField(
@@ -207,13 +201,12 @@ class AttributesView(CustomModelView):
         ),
     ]
 
-       
 
 class ProductAttributesView(CustomModelView):
-    name="атрибут товара"
-    label="Атрибуты товаров"
+    name = "атрибут товара"
+    label = "Атрибуты товаров"
     icon = "fa-solid fa-tags"
-    #fields = [c.name for c in ProductAttributes.__table__.c]+[ProductAttributes.product]+[ProductAttributes.attribute_name]
+    # fields = [c.name for c in ProductAttributes.__table__.c]+[ProductAttributes.product]+[ProductAttributes.attribute_name]
 
     fields = [
         IntegerField(
@@ -236,11 +229,12 @@ class ProductAttributesView(CustomModelView):
         ),
     ]
 
-class UsersView(CustomModelView):
-    name='пользователя'
-    label='Все пользователи'
 
-    fields=[
+class UsersView(CustomModelView):
+    name = "пользователя"
+    label = "Все пользователи"
+
+    fields = [
         IntegerField(
             name="id",
             label="ID",
@@ -260,7 +254,7 @@ class UsersView(CustomModelView):
         EmailField(
             name="email",
             label="Электронная почта",
-        ),    
+        ),
         IntegerField(
             name="discount",
             label="Персональная скидка",
@@ -271,26 +265,27 @@ class UsersView(CustomModelView):
             identity="type-user",
         ),
         BooleanField(
-            name='is_active',
-            label='Активен',
+            name="is_active",
+            label="Активен",
         ),
         BooleanField(
-            name='is_confirmed',
-            label='Подтвержден',
+            name="is_confirmed",
+            label="Подтвержден",
         ),
         IntegerField(
             name="registration_attempts",
             label="Попыток регистрации",
-        )
+        ),
     ]
     exclude_fields_from_create = [Users.hashed_password]
-    exclude_fields_from_edit =[Users.hashed_password]
+    exclude_fields_from_edit = [Users.hashed_password]
+
 
 class TypeUserView(CustomModelView):
-    name='тип пользоватяля'
-    label='Тип пользователя'
+    name = "тип пользоватяля"
+    label = "Тип пользователя"
 
-    fields=[
+    fields = [
         IntegerField(
             name="id",
             label="ID",
@@ -299,34 +294,24 @@ class TypeUserView(CustomModelView):
             name="type_name",
             label="Тип",
         ),
-        HasMany(
-            name="user",
-            label="Пользователи",
-            identity="users"
-        )
+        HasMany(name="user", label="Пользователи", identity="users"),
     ]
 
     exclude_fields_from_create = [TypeUser.user]
-    exclude_fields_from_edit =[TypeUser.user]
+    exclude_fields_from_edit = [TypeUser.user]
+
 
 class CartsView(CustomModelView):
-    name='В корзину'
-    label='Корзина'
+    name = "В корзину"
+    label = "Корзина"
 
-    fields=[
+    fields = [
         IntegerField(
             name="id",
             label="ID",
         ),
-        HasOne(
-            name="product",
-            label="Товар",
-            identity="products"
-        ),
-        IntegerField(
-            name="quantity",
-            label="Количество"
-        ),
+        HasOne(name="product", label="Товар", identity="products"),
+        IntegerField(name="quantity", label="Количество"),
         IntegerField(
             name="price",
             label="Цена (за шт.)",
@@ -335,33 +320,31 @@ class CartsView(CustomModelView):
             name="sum_price",
             label="Цена (всего)",
         ),
-        #HasOne(
+        # HasOne(
         #    name="user",
         #    label="Пользователь",
         #    identity="users"
-        #),
-        #UserPhoneField(
-        #    name="user.phone", 
+        # ),
+        # UserPhoneField(
+        #    name="user.phone",
         #    label="Телефон пользователя",
         #    searchable=True,
-        #),
+        # ),
         Carts.user,
     ]
 
-
     exclude_fields_from_create = [Carts.sum_price]
-    exclude_fields_from_edit =[Carts.sum_price]
+    exclude_fields_from_edit = [Carts.sum_price]
 
     def get_search_query(self, request: Request, term: str):
         return Carts.user.has(Users.phone.ilike(f"%{term}%"))
 
-   
 
 class OrdersView(CustomModelView):
-    name='заказ'
-    label='Заказы'
+    name = "заказ"
+    label = "Заказы"
 
-    fields=[
+    fields = [
         IntegerField(
             name="id",
             label="ID",
@@ -370,19 +353,12 @@ class OrdersView(CustomModelView):
             name="order_date",
             label="Дата заказа",
         ),
-        IntegerField(
-            name="total_amount",
-            label="Сумма заказа"     
-        ),
+        IntegerField(name="total_amount", label="Сумма заказа"),
         StringField(
             name="delivery_address",
             label="Адрес доставки",
         ),
-        EnumField(
-            name="order_status",
-            label="Статус заказа",
-            enum=OrderStatus
-        ),
+        EnumField(name="order_status", label="Статус заказа", enum=OrderStatus),
         HasOne(
             name="user",
             label="Пользователь",
@@ -392,48 +368,38 @@ class OrdersView(CustomModelView):
             name="orderitem",
             label="Товар",
             identity="order-items",
-        
-        )
+        ),
     ]
 
-    exclude_fields_from_create = [Orders.order_date, Orders.order_status, Orders.total_amount, Orders.orderitem]
-    exclude_fields_from_edit =[Orders.order_date, Orders.total_amount]
+    exclude_fields_from_create = [
+        Orders.order_date,
+        Orders.order_status,
+        Orders.total_amount,
+        Orders.orderitem,
+    ]
+    exclude_fields_from_edit = [Orders.order_date, Orders.total_amount]
 
     def get_search_query(self, request: Request, term: str):
         clauses = []
         clauses.append(cast(Orders.order_status, String).like(f"%{str(term).upper()}%"))
 
-        user_phone_clause = (
-            Orders.user.has(Users.phone.ilike(f"%{term}%"))
-        )
+        user_phone_clause = Orders.user.has(Users.phone.ilike(f"%{term}%"))
         clauses.append(user_phone_clause)
         return or_(*clauses)
-
 
 
 class OrderItemsView(CustomModelView):
     name = "в заказ"
     label = "Детали заказа"
 
-    fields=[
+    fields = [
         IntegerField(
             name="id",
             label="ID",
         ),
-        HasOne(
-            name="order",
-            label="Номер заказа",
-            identity="orders"
-        ),
-        HasOne(
-            name="product",
-            label="Товар",
-            identity="products"
-        ),
-        IntegerField(
-            name="quantity",
-            label="Количество"
-        ),
+        HasOne(name="order", label="Номер заказа", identity="orders"),
+        HasOne(name="product", label="Товар", identity="products"),
+        IntegerField(name="quantity", label="Количество"),
         IntegerField(
             name="price",
             label="Цена (за шт.)",
@@ -444,19 +410,17 @@ class OrderItemsView(CustomModelView):
         ),
     ]
     exclude_fields_from_create = [OrderItems.sum_price]
-    exclude_fields_from_edit =[OrderItems.sum_price]
+    exclude_fields_from_edit = [OrderItems.sum_price]
 
     def get_search_query(self, request: Request, term: str):
         return OrderItems.order.has(Orders.id == term)
 
+
 class SmsCodesView(CustomModelView):
-    name="SMS код"
-    label= "SMS коды"
+    name = "SMS код"
+    label = "SMS коды"
 
-    fields = [c.name for c in SmsCodes.__table__.c]+[SmsCodes.user]
-
-
-
+    fields = [c.name for c in SmsCodes.__table__.c] + [SmsCodes.user]
 
 
 class AddProductView(CustomView):
@@ -464,10 +428,12 @@ class AddProductView(CustomView):
     label = "Добавить товар"
     icon = "fa fa-plus"
 
-
     async def render(self, request: Request, templates=None) -> HTMLResponse:
         categories = await CategoriesDAO.find_all()
         attributes_from_db = await AttributesDAO.find_all()
 
         attributes = [dict(attr) for attr in attributes_from_db]
-        return templates.TemplateResponse("add_product.html", {"request": request, "categories": categories, "attributes": attributes})
+        return templates.TemplateResponse(
+            "add_product.html",
+            {"request": request, "categories": categories, "attributes": attributes},
+        )

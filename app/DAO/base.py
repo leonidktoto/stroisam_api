@@ -1,5 +1,7 @@
 from typing import Type
+
 from sqlalchemy import and_, delete, insert, select, update
+
 from app.database import async_session_maker
 
 
@@ -39,24 +41,28 @@ class BaseDAO:
     async def delete_by_filter(cls, **filter_by):
         async with async_session_maker() as session:
             query = delete(cls.model.__table__).filter_by(**filter_by)
-            result = await session.execute(query)
+            await session.execute(query)
             await session.commit()
-
 
     @classmethod
     async def update_data(cls, update_values: dict, **filters):
         if not update_values:
             raise ValueError("No data provided to update.")
-        
+
         if not filters:
             raise ValueError("No filter conditions provided.")
-        
+
         async with async_session_maker() as session:
             # Создаем условия для фильтрации из **kwargs
             filter_conditions = [getattr(cls.model, key) == value for key, value in filters.items()]
-            
+
             # Формирование запроса с фильтрацией и обновлением
-            query = update(cls.model).where(and_(*filter_conditions)).values(**update_values).returning(cls.model)
+            query = (
+                update(cls.model)
+                .where(and_(*filter_conditions))
+                .values(**update_values)
+                .returning(cls.model)
+            )
             result = await session.execute(query)
             await session.commit()
 

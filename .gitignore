@@ -17,3 +17,6 @@ provider_copy.py
 .env-*
 login_get.html
 .pytest_cache
+pyproject.toml
+format_code.py
+data.sql

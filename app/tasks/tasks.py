@@ -1,8 +1,8 @@
-from app.tasks.celery import celery_app
-from pprint import pprint
-from smsaero import SmsAero, SmsAeroException
-from app.config import settings
 from celery import Task
+from smsaero import SmsAero, SmsAeroException
+
+from app.config import settings
+from app.tasks.celery import celery_app
 
 
 @celery_app.task(bind=True, max_retries=3, default_retry_delay=60)
@@ -16,4 +16,3 @@ def send_sms_message(self: Task, user_phone: int, message: str):
     except SmsAeroException as e:
         # Повторная попытка
         raise self.retry(exc=e)
-

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 
+
 class SUsers(BaseModel):
     id: int
     first_name: str
@@ -20,16 +21,23 @@ class SUserAuth(SUsers):
     is_confirmed: bool = Field(exclude=True)
     registration_attempts: int = Field(exclude=True)
 
+
 class SRegisterUser(BaseModel):
     first_name: str = Field(..., max_length=15)
     email: EmailStr
-    phone: str = Field(..., pattern=r'^\d{10}$', description="Номер телефона (ровно 10 цифр)", title='Строка')
+    phone: str = Field(
+        ..., pattern=r"^\d{10}$", description="Номер телефона (ровно 10 цифр)", title="Строка"
+    )
     last_name: str | None = Field(None, max_length=15)
+
 
 class STokenInfo(BaseModel):
     access_token: str
     refresh_token: str | None = None
-    #token_type: str = "Bearer"
+    # token_type: str = "Bearer"
+
 
 class SUsersPhone(BaseModel):
-    phone: str = Field(..., pattern=r'^\d{10}$', description="Номер телефона (ровно 10 цифр)", title='Строка')
+    phone: str = Field(
+        ..., pattern=r"^\d{10}$", description="Номер телефона (ровно 10 цифр)", title="Строка"
+    )
