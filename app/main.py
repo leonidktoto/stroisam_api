@@ -3,19 +3,21 @@ from app.catalog.categories.router import router as router_categories
 from app.catalog.products.router import router as router_products
 from app.create_fastapi_app import create_app
 from app.create_starlette_admin import create_admin
+from app.config import settings
 from app.management.router import router as router_managments
 from app.orders.router import router as router_orders
 from app.users.router import router as router_users
+from hawk_python_sdk.modules.fastapi import HawkFastapi
 
 # Создаем приложение FastAPI
 app = create_app(create_custom_static_urls=True)
 
-# Разблокировать для работы с Hawk в Production!!!
-# hawk=HawkFastapi(
-#  {
-#    'app_instance':app,
-#    "token": settings.HAWK_TOKEN
-#  })  # type: ignore
+#Разблокировать для работы с Hawk в Production!!!
+hawk=HawkFastapi(
+ {
+   'app_instance':app,
+   "token": settings.HAWK_TOKEN
+ })  # type: ignore
 
 
 # class JWTAuthMiddleware(BaseHTTPMiddleware):
