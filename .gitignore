@@ -21,3 +21,4 @@ pyproject.toml
 format_code.py
 data.sql
 .ruff_cache
+app/logs/fastapi-elk.log

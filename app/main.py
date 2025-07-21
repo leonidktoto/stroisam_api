@@ -8,6 +8,7 @@ from app.management.router import router as router_managments
 from app.orders.router import router as router_orders
 from app.users.router import router as router_users
 from hawk_python_sdk.modules.fastapi import HawkFastapi
+from fastapi.middleware.cors import CORSMiddleware
 
 # Создаем приложение FastAPI
 app = create_app(create_custom_static_urls=True)
@@ -35,8 +36,15 @@ hawk=HawkFastapi(
 #        return response
 
 
+#CORS
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=["*"],
+  allow_credentials=True,
+  allow_method=["*"],
+  allow_headers=["*"]
+)
 # Подключаем роутеры
-
 app.include_router(router_categories)  # ,prefix=prefix)
 app.include_router(router_products)  # ,prefix=prefix)
 
