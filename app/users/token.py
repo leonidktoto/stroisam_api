@@ -57,4 +57,4 @@ def auth_user_set_cookie(response: Response, token_type: str, token: str):
     iat = payload.get("iat")
     max_age = exp - iat
 
-    response.set_cookie(token_type, token, httponly=True, max_age=max_age)
+    response.set_cookie(token_type, token, httponly=True, max_age=max_age, samesite = "none")
