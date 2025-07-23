@@ -92,7 +92,7 @@ async def login(response: Response, user: SUserAuth = Depends(validate_auth_user
     auth_user_set_cookie(response, ACCESS_TOKEN_TYPE, access_token)
     auth_user_set_cookie(response, REFRESH_TOKEN_TYPE, refresh_token)
 
-    return STokenInfo(access_token=access_token, refresh_token=refresh_token)
+    return STokenInfo(access=access_token, refresh=refresh_token)
 
 
 @router.post("/logout")
@@ -106,7 +106,7 @@ def auth_refresh_jwt(response: Response, user: SUsers = Depends(get_current_auth
     access_token = create_access_token(user)
     auth_user_set_cookie(response, ACCESS_TOKEN_TYPE, access_token)
 
-    return STokenInfo(access_token=access_token)
+    return STokenInfo(access=access_token)
 
 
 @router.get("/me/", response_model=SUserAuth)
