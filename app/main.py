@@ -35,11 +35,11 @@ hawk=HawkFastapi(
 #        response = await call_next(request)
 #        return response
 
-
+origins = ["http://localhost:5173"]
 #CORS
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=["*"],
+  allow_origins=origins,
   allow_credentials=True,
   allow_methods=["*"],
   allow_headers=["*"]
