@@ -17,5 +17,6 @@ async def send_new_sms_code(user: SUsers, phone: str):
     await UsersDAO.update_data(
         {"registration_attempts": user.registration_attempts + 1}, id=user.id
     )
-    send_sms_message.delay(int(f"7{phone}"), code)  # type: ignore
+    sms_text=f"Код подтверждения stroisam.ru: {code}"
+    send_sms_message.delay(int(f"7{phone}"), sms_text)  # type: ignore
     return {"status": "ok"}

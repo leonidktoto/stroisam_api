@@ -5,8 +5,8 @@ class SCarts(BaseModel):
     id: int
     product_id: int
     quantity: int
-    price: int | None
-    sum_price: int | None
+    price: int
+    sum_price: int
     user_id: int
 
 
