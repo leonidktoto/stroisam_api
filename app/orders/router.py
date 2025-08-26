@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 
 from app.carts.dao import CartsDAO
+from app.catalog.products.dao import ProductsDAO
 from app.exceptions import CartIsEmpty, OrderNotCanceled, OrderNumError
 from app.orders.dao import OrdersDAO
 from app.orders.models import OrderStatus
@@ -100,10 +101,14 @@ async def reorder(order_id: int, user: SUsers = Depends(get_current_active_auth_
         raise OrderNumError
 
     for item in order_items:
-        await CartsDAO.add_data(
-            product_id=item["product_id"],
-            quantity=item["quantity"],
-            user_id=user.id,
-        )
+        product = await ProductsDAO.find_one_or_none(id=item["product_id"])
+        if product:
+            await CartsDAO.add_data(
+                product_id=item["product_id"],
+                quantity=item["quantity"],
+                price=product.price,
+                user_id=user.id,
+            )
+
 
     return {"message": "Товары заказа добавлены в корзину"}
