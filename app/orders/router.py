@@ -11,8 +11,10 @@ from app.orders.models import OrderStatus
 from app.orders.order_items.dao import OrdersItemsDAO
 from app.orders.order_items.schemas import SOrderItems
 from app.orders.schemas import SOrdersWithoutUserId
+from app.orders.order_deliveries.schemas import SOrder_delveries_request, SOrder_delveries
 from app.users.schemas import SUsers
 from app.users.validation import get_current_active_auth_user
+from app.orders.order_deliveries.dao import OrderDeliveriesDAO
 
 router = APIRouter(
     prefix="/users/orders",
@@ -36,11 +38,21 @@ async def get_user_orders(
         status=status,
     )
 
+@router.get("/info_delivery/{order_id}", response_model=SOrder_delveries | None)
+async def get_info_delivery(
+    order_id: int,
+    user: SUsers = Depends(get_current_active_auth_user),
+):
+    if not await OrdersDAO.find_one_or_none(id=order_id, user_id=user.id):
+        raise OrderNumError
+    return await OrderDeliveriesDAO.find_one_or_none(order_id=order_id)
+
 
 @router.post(
     "/checkout",
 )
 async def create_order(
+    delivery: SOrder_delveries_request,
     user: SUsers = Depends(get_current_active_auth_user),
 ):
     cart_items = await CartsDAO.get_user_cart(user.id)
@@ -55,8 +67,13 @@ async def create_order(
             quantity=item["quantity"],
             price=item["price"],
         )
+
+    delivery_info = delivery.model_dump()
+    delivery_info["order_id"] = order_id["id"]
+
+    await OrderDeliveriesDAO.add_data(**delivery_info) # добавляем информацию о доставке
     await CartsDAO.delete_by_filter(user_id=user.id)  # очистка корзины
-    # здесь нужно передать в celery id для передачи заказа менеджеру
+    # здесь нужно передать в celery id для передачи заказа менеджеру В БОТ!!!!!!!
     return {"message": "Заказ создан", "order_id": order_id["id"]}
 
 

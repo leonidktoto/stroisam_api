@@ -16,11 +16,12 @@ from app.catalog.product_images.models import ProductImages
 
 from app.orders.models import Orders
 from app.orders.order_items.models import OrderItems
+from app.orders.order_deliveries.models import OrderDeliveries
 from app.users.models import Users
 from app.users.type_user.models import TypeUser
 from app.users.sms_codes.models import SmsCodes
 from app.carts.models import Carts
-
+ 
 sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
 
 # this is the Alembic Config object, which provides
