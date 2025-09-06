@@ -15,6 +15,7 @@ from app.adminpanel.viewstarlette import (
     SmsCodesView,
     TypeUserView,
     UsersView,
+    OrderDeliveriesView,
 )
 from app.carts.models import Carts
 from app.catalog.attributes.models import Attributes
@@ -24,6 +25,7 @@ from app.catalog.product_images.models import ProductImages
 from app.catalog.products.models import Products
 from app.database import sync_engine
 from app.orders.models import Orders
+from app.orders.order_deliveries.models import OrderDeliveries
 from app.orders.order_items.models import OrderItems
 from app.users.models import Users
 from app.users.sms_codes.models import SmsCodes
@@ -77,6 +79,7 @@ def create_admin() -> Admin:
                 CartsView(Carts),
                 OrdersView(Orders),
                 OrderItemsView(OrderItems),
+                OrderDeliveriesView(OrderDeliveries)
             ],
         )
     )

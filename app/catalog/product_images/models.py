@@ -3,6 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from starlette.requests import Request
 
 from app.database import Base
+from urllib.parse import quote
 
 
 class ProductImages(Base):
@@ -20,3 +21,14 @@ class ProductImages(Base):
 
     async def __admin_select2_repr__(self, request: Request) -> str:
         return f"<div><span>{self.description}</span></div>"
+
+    
+    @property
+    def image_url_full(self) -> str:
+        # нормализуем слэш и добавляем суффикс
+        path = self.image_url.lstrip("/")
+        if not path.endswith("_small.jpeg"):
+            path = f"{path}_small.jpeg"
+        # аккуратно кодируем кириллицу/пробелы, но оставляем служебные символы
+       # return quote(path, safe="/:._-")
+        return path

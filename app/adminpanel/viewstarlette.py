@@ -25,9 +25,11 @@ from app.catalog.categories.models import Categories
 from app.catalog.products.models import Products
 from app.orders.models import Orders, OrderStatus
 from app.orders.order_items.models import OrderItems
+from app.orders.order_deliveries.models import OrderDeliveries
 from app.users.models import Users
 from app.users.sms_codes.models import SmsCodes
 from app.users.type_user.models import TypeUser
+
 
 # templates = Jinja2Templates(directory="app/adminpanel/templates")
 # Создаём объект Jinja2 Environment вручную
@@ -124,6 +126,17 @@ class ProductImagesView(CustomModelView):
             label="Товары",
             identity="products",
         ),
+        URLField(
+            name="image_url_full",
+            label="Изображение (полная ссылка)",
+            read_only=True,
+            searchable=False,
+            orderable=False,
+            exclude_from_create=True,
+            exclude_from_edit=True,
+           # render_function_key="link",            # если у вас есть рендер ссылки
+            #display_template="displays/link.html", # или свой шаблон (см. ниже)
+        )
     ]
 
     # exclude_fields_from_list = [ProductImages.products]
@@ -414,6 +427,30 @@ class OrderItemsView(CustomModelView):
 
     def get_search_query(self, request: Request, term: str):
         return OrderItems.order.has(Orders.id == term)
+
+class OrderDeliveriesView(CustomModelView):
+    name = "в детали"
+    label = "Детали доставки"
+
+    fields = [
+        HasOne(name="order", label="Номер заказа", identity="orders"),
+        DateTimeField(
+            name="desired_delivery_at",
+            label="Дата доставки", search_format=None
+        ),
+        StringField(name="country", label="Страна"),
+        StringField(name="city", label="Город"),
+        StringField(name="address", label="Адрес"),
+        StringField(name="recipient_name", label="Имя получателя"),
+        StringField(name="phone_primary", label="Тел. получателя"),
+        StringField(name="phone_secondary", label="Тел. получателя 2"),
+        StringField(name="extra_info", label="Доп. информация"),
+    ]
+
+
+  #  def get_search_query(self, request: Request, term: str):
+  #      return OrderItems.order.has(Orders.id == term)
+
 
 
 class SmsCodesView(CustomModelView):

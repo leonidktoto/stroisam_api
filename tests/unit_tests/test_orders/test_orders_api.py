@@ -32,16 +32,25 @@ async def test_get_user_orders(
 
 
 @pytest.mark.parametrize(
-    "product, status_code", [({"product_id": 1, "quantity": 1}, 200), ({}, 400)]
+    "delivery, status_code",
+    [
+        (
+            {
+                "desired_delivery_at": "2024-07-01",
+                "country": "Russia",
+                "city": "Moscow",
+                "address": "Red Square 1"
+            },
+            200
+        ),
+        ({}, 422),
+    ]
 )
 @pytest.mark.asyncio
-async def test_create_order(product, status_code, authenticated_ac: AsyncClient):
-    if product:
-        response = await authenticated_ac.post(
-            "/users/cart/items", json=product, follow_redirects=True
-        )
-        assert response.status_code == status_code
-    response = await authenticated_ac.post("/users/orders/checkout")
+async def test_create_order(delivery, status_code, authenticated_ac: AsyncClient):
+    response = await authenticated_ac.post(
+        "/users/orders/checkout", json=delivery
+    )
     assert response.status_code == status_code
 
 
