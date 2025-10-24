@@ -12,6 +12,17 @@ before_script:
   - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
   - mkdir -p ./certs
   - mv jwt-private.pem jwt-public.pem ./certs/
+  
+init_network:
+  stage: init
+  script:
+    - echo "🔍 Проверка наличия docker-сети backend_net..."
+    - docker network inspect backend_net || docker network create backend_net
+    - echo "✅ Сеть backend_net готова."
+  tags:
+    - docker
+  only:
+    - main
 
 build:
   stage: build
