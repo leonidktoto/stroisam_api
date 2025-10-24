@@ -20,8 +20,6 @@ init_network:
     - echo "🔍 Проверка наличия docker-сети backend_net..."
     - docker network inspect backend_net || docker network create backend_net
     - echo "✅ Сеть backend_net готова."
-  tags:
-    - docker
   only:
     - main
 
