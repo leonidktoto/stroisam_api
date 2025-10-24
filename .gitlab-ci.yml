@@ -15,7 +15,7 @@ before_script:
   - mv jwt-private.pem jwt-public.pem ./certs/
   
 init_network:
-  stage: init
+  stage: init_network
   script:
     - echo "🔍 Проверка наличия docker-сети backend_net..."
     - docker network inspect backend_net || docker network create backend_net
