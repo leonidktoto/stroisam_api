@@ -1,8 +1,9 @@
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import selectinload
 
 from app.carts.models import Carts
 from app.DAO.base import BaseDAO
+from app.catalog.products.models import Products
 from app.database import async_session_maker
 
 
@@ -14,7 +15,9 @@ class CartsDAO(BaseDAO):
         async with async_session_maker() as session:
             query = (
                 select(Carts)
-                .options(joinedload(Carts.product))
+                .options(
+                    selectinload(Carts.product).selectinload(Products.image)
+                )
                 .where(Carts.user_id == user_id)
                 .order_by(Carts.id.asc())
             )
@@ -23,8 +26,16 @@ class CartsDAO(BaseDAO):
 
             if not result:
                 return None
+
             transform_result = []
             for item in result:
+                logo_image = None
+                if item.product.image:
+                    for img in item.product.image:
+                        if getattr(img, "logo", False):
+                            logo_image = getattr(img, "image_url", None)
+                            break
+
                 product = {
                     "id": item.id,
                     "product_id": item.product_id,
@@ -33,6 +44,8 @@ class CartsDAO(BaseDAO):
                     "quantity": item.quantity,
                     "price": item.price,
                     "sum_price": item.sum_price,
+                    "image_url": logo_image,
                 }
                 transform_result.append(product)
+
             return transform_result

@@ -27,3 +27,4 @@ class SUserCart(BaseModel):
     quantity: int
     price: int
     sum_price: int
+    image_url: str | None
