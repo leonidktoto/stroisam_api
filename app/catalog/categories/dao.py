@@ -1,4 +1,4 @@
-from sqlalchemy import case, distinct, func, select
+from sqlalchemy import case, desc, distinct, func, select
 from sqlalchemy.orm import aliased
 
 from app.catalog.categories.models import Categories
@@ -40,6 +40,7 @@ class CategoriesDAO(BaseDAO):
                 .select_from(Categories)
                 .join(subquery, Categories.id == subquery.c.parent_id, isouter=True)
                 .where(Categories.parent_id == parent_id)
+                .order_by(Categories.category_name.asc())
             )
 
             result = await session.execute(query)
