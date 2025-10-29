@@ -37,13 +37,6 @@ async def test_add_and_get_category(data):
             9,
             [
                 {
-                    "id": 24,
-                    "parent_id": 9,
-                    "category_name": "Рейки",
-                    "image_url": None,
-                    "has_children": False,
-                },
-                {
                     "id": 25,
                     "parent_id": 9,
                     "category_name": "Бруски",
@@ -54,6 +47,13 @@ async def test_add_and_get_category(data):
                     "id": 26,
                     "parent_id": 9,
                     "category_name": "Доски",
+                    "image_url": None,
+                    "has_children": False,
+                },
+                                {
+                    "id": 24,
+                    "parent_id": 9,
+                    "category_name": "Рейки",
                     "image_url": None,
                     "has_children": False,
                 },

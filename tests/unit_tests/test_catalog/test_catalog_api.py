@@ -17,13 +17,6 @@ async def test_get_main_categories(ac: AsyncClient):
             200,
             [
                 {
-                    "id": 24,
-                    "parent_id": 9,
-                    "category_name": "Рейки",
-                    "image_url": None,
-                    "has_children": False,
-                },
-                {
                     "id": 25,
                     "parent_id": 9,
                     "category_name": "Бруски",
@@ -37,6 +30,13 @@ async def test_get_main_categories(ac: AsyncClient):
                     "image_url": None,
                     "has_children": False,
                 },
+                {
+                    "id": 24,
+                    "parent_id": 9,
+                    "category_name": "Рейки",
+                    "image_url": None,
+                    "has_children": False,
+                }
             ],
         ),
         (999, 200, []),
