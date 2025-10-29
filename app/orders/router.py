@@ -117,6 +117,8 @@ async def reorder(order_id: int, user: SUsers = Depends(get_current_active_auth_
     if not order_items:
         raise OrderNumError
 
+    await CartsDAO.delete_by_filter(user_id=user.id) #Чистим корзину
+
     for item in order_items:
         product = await ProductsDAO.find_one_or_none(id=item["product_id"])
         if product:
