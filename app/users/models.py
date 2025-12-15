@@ -25,6 +25,7 @@ class Users(Base):
     sms = relationship("SmsCodes", back_populates="user")
     orders = relationship("Orders", back_populates="user")
     cart = relationship("Carts", back_populates="user")
+    favorite = relationship("Favorites", back_populates="user")
 
     async def __admin_repr__(self, request: Request):
         return f"{self.type_.type_name}: {self.first_name} {self.last_name}, тел. {self.phone}"

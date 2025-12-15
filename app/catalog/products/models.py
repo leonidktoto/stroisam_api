@@ -29,6 +29,7 @@ class Products(Base):
     )
     orderitem = relationship("OrderItems", back_populates="product")
     cart = relationship("Carts", back_populates="product", cascade="all, delete-orphan")
+    favorite = relationship("Favorites", back_populates="product", cascade="all, delete-orphan")
 
     async def __admin_repr__(self, request: Request):
         return f"{self.product_name}"

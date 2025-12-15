@@ -7,6 +7,7 @@ from app.config import settings
 from app.management.router import router as router_managments
 from app.orders.router import router as router_orders
 from app.users.router import router as router_users
+from app.favorites.router import router as router_favorites
 from hawk_python_sdk.modules.fastapi import HawkFastapi
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -50,6 +51,7 @@ app.include_router(router_products)  # ,prefix=prefix)
 
 app.include_router(router_users)  # , prefix=prefix)
 app.include_router(router_carts)  # , prefix=prefix)
+app.include_router(router_favorites)  # , prefix=prefix)
 app.include_router(router_orders)  # , prefix=prefix)
 app.include_router(router_managments)  # , prefix=prefix)
 
