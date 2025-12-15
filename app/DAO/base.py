@@ -36,6 +36,13 @@ class BaseDAO:
             result = await session.execute(query)
             await session.commit()
             return result.mappings().all()[0]
+    @classmethod
+    async def add_many(cls, data_list: list[dict]):
+        async with async_session_maker() as session:
+            query = insert(cls.model).values(data_list).returning(cls.model.id)
+            result = await session.execute(query)
+            await session.commit()
+            return result.mappings().all()[0]
 
     @classmethod
     async def delete_by_filter(cls, **filter_by):

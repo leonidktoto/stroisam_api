@@ -22,6 +22,7 @@ from app.carts.models import Carts
 from app.catalog.attributes.dao import AttributesDAO
 from app.catalog.categories.dao import CategoriesDAO
 from app.catalog.categories.models import Categories
+from app.catalog.products.dao import ProductsDAO
 from app.catalog.products.models import Products
 from app.orders.models import Orders, OrderStatus
 from app.orders.order_items.models import OrderItems
@@ -473,4 +474,40 @@ class AddProductView(CustomView):
         return templates.TemplateResponse(
             "add_product.html",
             {"request": request, "categories": categories, "attributes": attributes},
+        )
+#class ManagmentOrderView(CustomView):
+#    name = "Работа с заказом"
+#    label = "Работа с заказом"
+#    icon = "fa fa-search"  # любая иконка FontAwesome
+#
+#    async def render(self, request: Request, templates=None) -> HTMLResponse:
+#        return templates.TemplateResponse(
+#            "managment_order.html",  
+#            {"request": request},
+#        )
+class ManagmentOrderView(CustomView):
+    name = "Редактировать заказ"
+    label = "Редактировать заказ"
+    icon = "fa fa-search"
+    path = "/managment_order"
+
+    async def render(self, request: Request, templates) -> HTMLResponse:
+        products_from_db = await ProductsDAO.find_all()  # как ты написал
+
+        # Лучше привести к простым dict, чтобы tojson не споткнулся
+        products = [
+            {
+                "id": p.id,
+                "product_name": p.product_name,
+                "price": p.price,
+            }
+            for p in products_from_db
+        ]
+
+        return templates.TemplateResponse(
+            "managment_order.html",
+            {
+                "request": request,
+                "products": products,
+            },
         )

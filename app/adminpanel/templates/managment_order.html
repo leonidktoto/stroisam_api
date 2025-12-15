@@ -1,0 +1,678 @@
+{% extends "layout.html" %}
+
+{% block header %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>Поиск и редактирование заказа</h1>
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('admin:index') }}">Admin</a>
+            </li>
+            <li class="breadcrumb-item active">Поиск заказа</li>
+        </ol>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+
+            <!-- Поиск заказа -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form id="search-order-form" class="row gy-2 gx-3 align-items-end">
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                            <label for="order_id" class="form-label">Номер заказа</label>
+                            <input type="number"
+                                   min="1"
+                                   max="999999999"
+                                   class="form-control"
+                                   id="order_id"
+                                   name="order_id"
+                                   placeholder="Введите номер заказа"
+                                   required>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">
+                                Найти заказ
+                            </button>
+                        </div>
+                    </form>
+                    <div id="search-error" class="text-danger mt-2" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- Детали заказа -->
+            <div class="card" id="order-card" style="display:none;">
+                <div class="card-body border-bottom py-4">
+                    <h2 class="h2 mb-4">Информация о заказе</h2>
+
+                    <div class="row mb-4">
+                        <!-- Общее -->
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="order-section-title">Общее</div>
+
+                            <div class="mb-2">
+                                <div class="order-meta-label">Номер заказа</div>
+                                <div class="order-meta-value" id="order-info-id"></div>
+                            </div>
+
+                            <div class="mb-2">
+                                <div class="order-meta-label">Статус</div>
+                                <select id="order-status-select" class="form-select order-meta-input">
+                                    <option value="CREATED">Создан</option>
+                                    <option value="PROCESSING">В обработке</option>
+                                    <option value="OPERATOR_PROCESSED">Обработан оператором</option>
+                                    <option value="CONFIRMED">Подтверждён</option>
+                                    <option value="AWAITING_PAYMENT">Ожидает оплату</option>
+                                    <option value="PAID">Оплачен</option>
+                                    <option value="COMPLETED">Завершён</option>
+                                    <option value="CANCELED">Отменён</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <div class="order-meta-label">Дата создания</div>
+                                <div class="order-meta-value" id="order-info-date"></div>
+                            </div>
+                        </div>
+
+                        <!-- Клиент -->
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="order-section-title">Клиент</div>
+
+                            <div class="mb-2">
+                                <div class="order-meta-label">Имя заказчика</div>
+                                <div class="order-meta-value" id="order-user-name"></div>
+                            </div>
+
+                            <div class="mb-2">
+                                <div class="order-meta-label">Контактный телефон</div>
+                                <div class="order-meta-value" id="order-user-phone"></div>
+                            </div>
+
+                            <div>
+                                <div class="order-meta-label">Почта</div>
+                                <div class="order-meta-value" id="order-user-email"></div>
+                            </div>
+                        </div>
+
+                        <!-- Доставка -->
+                        <div class="col-md-4">
+                            <div class="order-section-title">Доставка</div>
+
+                            <div class="mb-2">
+                                <div class="order-meta-label">Ожидаемая дата доставки</div>
+                                <input type="datetime-local"
+                                       id="order-delivery-desired"
+                                       class="form-control order-meta-input">
+                            </div>
+
+                            <div class="mb-2">
+                                <div class="order-meta-label">Адрес доставки</div>
+                                <div class="order-meta-value" id="order-delivery-address"></div>
+                            </div>
+
+                            <div class="mb-2">
+                                <div class="order-meta-label">Дополнительные контакты</div>
+                                <div class="order-meta-value" id="order-delivery-phones"></div>
+                            </div>
+
+                            <div>
+                                <div class="order-meta-label">Комментарий к заказу</div>
+                                <div class="order-meta-value" id="order-delivery-extra"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="h5 mt-2 mb-3">Товары в заказе</h3>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Товар</th>
+                                    <th style="width: 120px;">Кол-во</th>
+                                    <th style="width: 140px;">Цена</th>
+                                    <th style="width: 140px;">Сумма</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-items-body">
+                                <!-- строки добавляются JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Итого сразу после товаров -->
+                    <div class="d-flex justify-content-end mt-3 mb-4">
+                        <div class="me-3 fw-semibold">
+                            Итого: <span id="order-total-amount">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Блок добавления товара -->
+                    <div class="mt-2">
+                        <h3 class="h5 mt-2 mb-3">Добавить товар в заказ</h3>
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-6">
+                                <label for="new-product-id" class="form-label">Товар</label>
+                                <select id="new-product-id" class="form-control select2">
+                                    <option value=""></option>
+                                    {% for p in products %}
+                                        <option value="{{ p.id }}" data-price="{{ p.price }}">
+                                            {{ p.product_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="new-product-quantity" class="form-label">Кол-во</label>
+                                <input type="number"
+                                       id="new-product-quantity"
+                                       class="form-control"
+                                       min="1"
+                                       max="999999999"
+                                       value="1">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="new-product-price" class="form-label">Цена</label>
+                                <input type="number"
+                                       id="new-product-price"
+                                       class="form-control"
+                                       min="0"
+                                       max="999999999">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" id="add-item-to-order" class="btn btn-primary w-100">
+                                    Добавить
+                                </button>
+                            </div>
+                        </div>
+                        <div id="add-item-error" class="text-danger mt-2" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <div class="card-footer text-black d-flex justify-content-between justify-content-md-end gap-2">
+                    <a href="{{ url_for('admin:index') }}" class="btn btn-secondary">
+                        Назад
+                    </a>
+                    <button type="button" id="save-order-items" class="btn btn-success">
+                        Сохранить изменения
+                    </button>
+                </div>
+                <div id="save-message" class="px-3 pb-3"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block head_css %}
+    {{ super() }}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .table td input.form-control {
+            padding: 0.15rem 0.35rem;
+            height: auto;
+        }
+
+        #order_id {
+            min-width: 220px;
+        }
+        @media (min-width: 992px) {
+            #order_id {
+                min-width: 280px;
+            }
+        }
+
+        .order-section-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .order-meta-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #6c757d;
+            margin-bottom: 0.1rem;
+        }
+
+        .order-meta-value {
+            font-size: 0.95rem;
+        }
+
+        /* input/select в шапке заказа — по размеру как текст */
+        .order-meta-input {
+            font-size: 1rem;
+            height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem;
+        }
+
+        .is-invalid .select2-selection {
+            border-color: #d63939 !important;
+        }
+
+        .select2-container {
+            width: 100% !important;
+        }
+
+        .select2-container .select2-selection--single {
+            height: calc(1.5em + .75rem + 2px);
+            padding: 0 .75rem;
+            border: 1px solid #ced4da;
+            border-radius: .375rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            padding-left: 0;
+            padding-right: 2.5rem;
+            line-height: calc(1.5em + .75rem - 2px);
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__clear {
+            right: 1.9rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            right: .75rem;
+            height: 100%;
+        }
+
+        .select2-container--default .select2-selection--single:focus,
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            outline: 0;
+            box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .25);
+            border-color: #80bdff;
+        }
+    </style>
+{% endblock %}
+
+{% block script %}
+    {{ super() }}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            $('#new-product-id').select2({
+                placeholder: 'Поиск товара',
+                allowClear: true,
+                width: '100%'
+            });
+
+            const searchForm = document.getElementById("search-order-form");
+            const orderIdInput = document.getElementById("order_id");
+            const searchError = document.getElementById("search-error");
+
+            const orderCard = document.getElementById("order-card");
+            const orderInfoId = document.getElementById("order-info-id");
+            const orderStatusSelect = document.getElementById("order-status-select");
+            const orderInfoDate = document.getElementById("order-info-date");
+
+            const orderUserName = document.getElementById("order-user-name");
+            const orderUserPhone = document.getElementById("order-user-phone");
+            const orderUserEmail = document.getElementById("order-user-email");
+
+            const orderDeliveryDesired = document.getElementById("order-delivery-desired");
+            const orderDeliveryAddress = document.getElementById("order-delivery-address");
+            const orderDeliveryPhones = document.getElementById("order-delivery-phones");
+            const orderDeliveryExtra = document.getElementById("order-delivery-extra");
+
+            const orderItemsBody = document.getElementById("order-items-body");
+            const orderTotalAmount = document.getElementById("order-total-amount");
+
+            const saveButton = document.getElementById("save-order-items");
+            const saveMessage = document.getElementById("save-message");
+
+            let currentOrderId = null;
+
+            const newProductSelect = document.getElementById("new-product-id");
+            const newProductQuantityInput = document.getElementById("new-product-quantity");
+            const newProductPriceInput = document.getElementById("new-product-price");
+            const addItemButton = document.getElementById("add-item-to-order");
+            const addItemError = document.getElementById("add-item-error");
+
+            function formatDate(isoStr) {
+                if (!isoStr) return "";
+                try {
+                    const d = new Date(isoStr);
+                    if (isNaN(d.getTime())) return isoStr;
+                    return d.toLocaleString();
+                } catch (e) {
+                    return isoStr;
+                }
+            }
+
+            function isoToDatetimeLocal(isoStr) {
+                if (!isoStr) return "";
+                const d = new Date(isoStr);
+                if (isNaN(d.getTime())) return "";
+                const pad = (n) => n.toString().padStart(2, "0");
+                const year = d.getFullYear();
+                const month = pad(d.getMonth() + 1);
+                const day = pad(d.getDate());
+                const hour = pad(d.getHours());
+                const minute = pad(d.getMinutes());
+                return `${year}-${month}-${day}T${hour}:${minute}`;
+            }
+
+            function recalcTotals() {
+                let total = 0;
+                const rows = orderItemsBody.querySelectorAll("tr");
+                rows.forEach(row => {
+                    const qtyInput = row.querySelector(".item-quantity");
+                    const priceInput = row.querySelector(".item-price");
+                    const sumCell = row.querySelector(".item-sum");
+
+                    const qty = parseInt(qtyInput.value, 10) || 0;
+                    const price = parseInt(priceInput.value, 10) || 0;
+                    const sum = qty * price;
+                    sumCell.textContent = sum.toString();
+                    total += sum;
+                });
+                orderTotalAmount.textContent = total.toString();
+            }
+
+            function createItemRow(item) {
+                const tr = document.createElement("tr");
+                tr.dataset.productId = item.product_id;
+
+                const sum = item.sum_price != null
+                    ? item.sum_price
+                    : (item.quantity * item.price);
+
+                tr.innerHTML = `
+                    <td>${item.product_name}</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm item-quantity"
+                               min="1" max="999999999" value="${item.quantity}">
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm item-price"
+                               min="0" max="999999999" value="${item.price}">
+                    </td>
+                    <td class="item-sum">${sum}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-danger btn-remove-item">&times;</button>
+                    </td>
+                `;
+
+                tr.querySelector(".item-quantity").addEventListener("input", recalcTotals);
+                tr.querySelector(".item-price").addEventListener("input", recalcTotals);
+
+                tr.querySelector(".btn-remove-item").addEventListener("click", function () {
+                    tr.remove();
+                    recalcTotals();
+                });
+
+                return tr;
+            }
+
+            function renderOrder(data) {
+                currentOrderId = data.order_id;
+
+                orderInfoId.textContent = data.order_id;
+
+                if (data.order_status) {
+                    orderStatusSelect.value = data.order_status;
+                }
+
+                orderInfoDate.textContent = formatDate(data.order_date);
+
+                if (data.user) {
+                    const fullName = `${data.user.first_name || ""} ${data.user.last_name || ""}`.trim();
+                    orderUserName.textContent = fullName || "-";
+                    orderUserPhone.textContent = data.user.phone || "-";
+                    orderUserEmail.textContent = data.user.email || "-";
+                } else {
+                    orderUserName.textContent = "-";
+                    orderUserPhone.textContent = "-";
+                    orderUserEmail.textContent = "-";
+                }
+
+                if (data.delivery) {
+                    orderDeliveryAddress.textContent = data.delivery.address || "-";
+
+                    const phones = [data.delivery.phone_primary, data.delivery.phone_secondary]
+                        .filter(Boolean)
+                        .join(", ");
+                    orderDeliveryPhones.textContent = phones || "-";
+
+                    orderDeliveryExtra.textContent = data.delivery.extra_info || "-";
+
+                    const desiredRaw = data.desired_delivery_at || data.delivery.desired_delivery_at;
+                    orderDeliveryDesired.value = desiredRaw ? isoToDatetimeLocal(desiredRaw) : "";
+                } else {
+                    orderDeliveryAddress.textContent = "-";
+                    orderDeliveryPhones.textContent = "-";
+                    orderDeliveryExtra.textContent = "-";
+                    orderDeliveryDesired.value = "";
+                }
+
+                orderItemsBody.innerHTML = "";
+                if (Array.isArray(data.items)) {
+                    data.items.forEach(item => {
+                        const row = createItemRow(item);
+                        orderItemsBody.appendChild(row);
+                    });
+                }
+
+                orderTotalAmount.textContent = data.total_amount ?? "0";
+                recalcTotals();
+
+                orderCard.style.display = "block";
+                saveMessage.textContent = "";
+                saveMessage.className = "";
+            }
+
+            $('#new-product-id').on('change', function () {
+                const selectedId = this.value;
+                if (!selectedId) {
+                    newProductPriceInput.value = "";
+                    return;
+                }
+                const selectedOption = this.options[this.selectedIndex];
+                const priceAttr = selectedOption.getAttribute('data-price');
+                const price = priceAttr ? parseInt(priceAttr, 10) : 0;
+                newProductPriceInput.value = isNaN(price) ? "" : price;
+                addItemError.style.display = "none";
+                addItemError.textContent = "";
+            });
+
+            addItemButton.addEventListener("click", function () {
+                addItemError.style.display = "none";
+                addItemError.textContent = "";
+
+                const selectedId = Number(newProductSelect.value);
+                if (!selectedId) {
+                    addItemError.textContent = "Выберите товар.";
+                    addItemError.style.display = "block";
+                    return;
+                }
+
+                const selectedOption = newProductSelect.options[newProductSelect.selectedIndex];
+                const productName = selectedOption.textContent.trim();
+                const priceAttr = selectedOption.getAttribute('data-price');
+
+                let price = parseInt(newProductPriceInput.value, 10);
+                if (isNaN(price) || price < 0) {
+                    const defaultPrice = priceAttr ? parseInt(priceAttr, 10) : 0;
+                    price = isNaN(defaultPrice) ? 0 : defaultPrice;
+                }
+
+                let quantity = parseInt(newProductQuantityInput.value, 10);
+                if (isNaN(quantity) || quantity <= 0) {
+                    quantity = 1;
+                }
+
+                const item = {
+                    product_id: selectedId,
+                    product_name: productName,
+                    quantity: quantity,
+                    price: price,
+                    sum_price: quantity * price
+                };
+
+                const row = createItemRow(item);
+                orderItemsBody.appendChild(row);
+                recalcTotals();
+
+                $('#new-product-id').val(null).trigger('change');
+                newProductQuantityInput.value = "1";
+                newProductPriceInput.value = "";
+            });
+
+            searchForm.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                searchError.style.display = "none";
+                searchError.textContent = "";
+                saveMessage.textContent = "";
+                saveMessage.className = "";
+
+                const orderId = orderIdInput.value.trim();
+                if (!orderId) {
+                    searchError.textContent = "Введите номер заказа.";
+                    searchError.style.display = "block";
+                    return;
+                }
+
+                try {
+                    const resp = await fetch(
+                        "/managment/find_order",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json"
+                            },
+                            body: JSON.stringify({
+                                order_id: Number(orderId)
+                            })
+                        }
+                    );
+
+                    if (!resp.ok) {
+                        const text = await resp.text();
+                        throw new Error(text || "Ошибка поиска заказа");
+                    }
+
+                    const data = await resp.json();
+                    renderOrder(data);
+                } catch (err) {
+                    orderCard.style.display = "none";
+                    searchError.textContent = err.message || "Не удалось получить данные заказа";
+                    searchError.style.display = "block";
+                }
+            });
+
+            // Сохранение: статус -> доставка -> товары
+            saveButton.addEventListener("click", async function () {
+                if (!currentOrderId) {
+                    return;
+                }
+
+                const status = orderStatusSelect.value;
+                const desiredDeliveryAt = orderDeliveryDesired.value || null;
+
+                const rows = orderItemsBody.querySelectorAll("tr");
+                const items = [];
+
+                rows.forEach(row => {
+                    const productId = row.dataset.productId;
+                    const qtyInput = row.querySelector(".item-quantity");
+                    const priceInput = row.querySelector(".item-price");
+
+                    const quantity = parseInt(qtyInput.value, 10);
+                    const price = parseInt(priceInput.value, 10);
+
+                    if (!productId) {
+                        return;
+                    }
+                    if (isNaN(quantity) || quantity <= 0 || isNaN(price) || price < 0) {
+                        return;
+                    }
+
+                    items.push({
+                        product_id: Number(productId),
+                        quantity: quantity,
+                        price: price
+                    });
+                });
+
+                if (items.length === 0) {
+                    saveMessage.textContent = "Нельзя сохранить заказ без товаров.";
+                    saveMessage.className = "text-danger";
+                    return;
+                }
+
+                try {
+                    // 1) статус заказа
+                    const statusResp = await fetch(
+                        `/managment/orders/${encodeURIComponent(currentOrderId)}/status`,
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json"
+                            },
+                            body: JSON.stringify({
+                                order_status: status
+                            })
+                        }
+                    );
+
+                    if (!statusResp.ok) {
+                        const text = await statusResp.text();
+                        throw new Error(text || "Ошибка сохранения статуса заказа");
+                    }
+
+                    // 2) ожидаемая дата доставки
+                    const deliveryResp = await fetch(
+                        `/managment/orders/${encodeURIComponent(currentOrderId)}/delivery`,
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json"
+                            },
+                            body: JSON.stringify({
+                                desired_delivery_at: desiredDeliveryAt
+                            })
+                        }
+                    );
+
+                    if (!deliveryResp.ok) {
+                        const text = await deliveryResp.text();
+                        throw new Error(text || "Ошибка сохранения данных доставки");
+                    }
+
+                    // 3) товары в заказе
+                    const itemsResp = await fetch(
+                        `/managment/order_items/${encodeURIComponent(currentOrderId)}/update`,
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json"
+                            },
+                            body: JSON.stringify({ items: items })
+                        }
+                    );
+
+                    if (!itemsResp.ok) {
+                        const text = await itemsResp.text();
+                        throw new Error(text || "Ошибка сохранения товаров");
+                    }
+
+                    saveMessage.textContent = "Изменения успешно сохранены.";
+                    saveMessage.className = "text-success";
+                } catch (err) {
+                    saveMessage.textContent = err.message || "Не удалось сохранить изменения.";
+                    saveMessage.className = "text-danger";
+                }
+            });
+        });
+    </script>
+{% endblock %}

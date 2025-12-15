@@ -12,6 +12,7 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse, RedirectResponse
 from PIL import Image
+from pydantic import _migration
 
 from app.catalog.categories.dao import CategoriesDAO
 from app.catalog.product_attributes.dao import ProductAttributesDAO
@@ -19,8 +20,14 @@ from app.catalog.product_images.dao import ProductImagesDAO
 from app.catalog.products.dao import ProductsDAO
 from app.config import settings
 from app.management.helpers import load_images_to_s3
+from app.management.dao import ManagementDAO
+from app.orders.order_deliveries.dao import OrderDeliveriesDAO
+from app.orders.order_items.dao import OrdersItemsDAO
 from app.users.schemas import SUsers
 from app.users.validation import get_admin_active_auth_user
+from app.orders.dao import OrdersDAO
+from app.exceptions import OrderNumError
+from app.management.schemas import SOrderDeliveryUpdate, SOrderFindPayload, SOrderItemsUpdatePayload, SOrderStatusUpdate
 
 router = APIRouter(
     prefix="/managment",
@@ -136,3 +143,69 @@ async def add_product_form(
         return JSONResponse(
             content={"error": "Ошибка добавления товара", "Детали": str(e)}, status_code=400
         )
+
+
+
+@router.post("/find_order")
+async def find_order(
+    payload: SOrderFindPayload,
+    user: SUsers = Depends(get_admin_active_auth_user),
+):
+    order_id = payload.order_id
+
+    if not await OrdersDAO.find_one_or_none(id=order_id):
+        raise OrderNumError
+    return await ManagementDAO.find_order(order_id=order_id)
+
+@router.put("/order_items/{order_id}/update")
+async def update_order(
+    order_id: int,
+    payload: SOrderItemsUpdatePayload, 
+    user: SUsers = Depends(get_admin_active_auth_user),
+):
+    if not await OrdersDAO.find_one_or_none(id=order_id):
+        raise OrderNumError
+    new_items = [
+        item.model_dump() | {"order_id": order_id}
+        for item in payload.items
+    ]
+
+    await OrdersItemsDAO.delete_by_filter(order_id=order_id)
+    await OrdersItemsDAO.add_many(data_list = new_items)
+
+    
+    return {"message": "Заказ пользователя обновлен", "order_id": order_id}
+
+@router.put("/orders/{order_id}/status")
+async def update_order_status(
+    order_id: int,
+    payload: SOrderStatusUpdate,
+    user: SUsers = Depends(get_admin_active_auth_user),
+):
+    order = await OrdersDAO.find_one_or_none(id=order_id)
+    if not order:
+        raise OrderNumError
+
+    # колонка order_status: Mapped[OrderStatus] – можно передавать Enum
+    await OrdersDAO.update_data({"order_status": payload.order_status}, id=order_id)
+
+    return {"status": "ok"}
+
+@router.put("/orders/{order_id}/delivery")
+async def update_order_delivery(
+    order_id: int,
+    payload: SOrderDeliveryUpdate,
+    user: SUsers = Depends(get_admin_active_auth_user),
+):
+    delivery = await OrderDeliveriesDAO.find_one_or_none(order_id=order_id)
+    if not delivery:
+        # если у тебя своя ошибка — можешь бросить её
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Delivery not found")
+
+    await OrderDeliveriesDAO.update_data(
+        {"desired_delivery_at": payload.desired_delivery_at},
+        order_id=order_id,
+    )
+
+    return {"status": "ok"}
