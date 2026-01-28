@@ -29,23 +29,24 @@ class CartsDAO(BaseDAO):
 
             transform_result = []
             for item in result:
-                logo_image = None
-                if item.product.image:
-                    for img in item.product.image:
-                        if getattr(img, "logo", False):
-                            logo_image = getattr(img, "image_url", None)
-                            break
+                if item.product.is_active:
+                    logo_image = None
+                    if item.product.image:
+                        for img in item.product.image:
+                            if getattr(img, "logo", False):
+                                logo_image = getattr(img, "image_url", None)
+                                break
 
-                product = {
-                    "id": item.id,
-                    "product_id": item.product_id,
-                    "article": item.product.article,
-                    "product_name": item.product.product_name,
-                    "quantity": item.quantity,
-                    "price": item.price,
-                    "sum_price": item.sum_price,
-                    "image_url": logo_image,
-                }
-                transform_result.append(product)
+                    product = {
+                        "id": item.id,
+                        "product_id": item.product_id,
+                        "article": item.product.article,
+                        "product_name": item.product.product_name,
+                        "quantity": item.quantity,
+                        "price": item.price,
+                        "sum_price": item.sum_price,
+                        "image_url": logo_image,
+                    }
+                    transform_result.append(product)
 
             return transform_result

@@ -33,7 +33,8 @@ class ProductsDAO(BaseDAO):
                 Products.price,
                 Products.stock,
                 subquery.c.image_url,
-            ).join(subquery, Products.id == subquery.c.product_id, isouter=True)
+            ).join(subquery, Products.id == subquery.c.product_id, isouter=True
+            ).where(Products.is_active==True)
 
             if category_id is not None:
                 query = query.where(Products.category_id == category_id)
@@ -55,7 +56,8 @@ class ProductsDAO(BaseDAO):
                     ),
                     joinedload(Products.image),
                 )
-                .where(Products.id == id)
+                .where(and_(Products.id == id, Products.is_active.is_(True)))
+             
             )
             result = await session.execute(query)
             result = result.scalar()
@@ -149,7 +151,7 @@ class ProductsDAO(BaseDAO):
                 )
                 .join(subquery_pr, Products.id == subquery_pr.c.product_id)
                 .join(subquery_im, Products.id == subquery_im.c.product_id, isouter=True)
-                .where(Products.category_id == category_id)
+                .where(and_(Products.category_id == category_id, Products.is_active._is(True)))
             )
 
             print("!!!!!!@@@@@@@@@@!!!!!!!!!!@@@@@@@@@@@@!!!!!!!!!!!")
@@ -192,3 +194,55 @@ class ProductsDAO(BaseDAO):
             result = await session.execute(query)
             suggestions = result.scalars().all()
             return [{"product_name": name} for name in suggestions]
+
+    @classmethod
+    async def get_all_product_names(cls):
+        async with async_session_maker() as session:
+            query = select(Products.product_name)
+            result = await session.execute(query)
+            return result.scalars().all()
+
+    @classmethod
+    async def find_product_by_name(cls, product_name: str):
+        async with async_session_maker() as session:
+            query = (
+                select(Products)
+                .options(
+                    joinedload(Products.product_attribute).joinedload(
+                        ProductAttributes.attribute_name
+                    ),
+                    joinedload(Products.image),
+                )
+                .where(Products.product_name == product_name)
+            )
+            result = await session.execute(query)
+            result = result.scalar()
+
+            if result is None:
+                return None
+
+            transform_result = {
+                "id": result.id,
+                "article": result.article,
+                "category_id": result.category_id,
+                "product_name": result.product_name,
+                "description": result.description,
+                "price": result.price,
+                "stock": result.stock,
+                "product_attributes": [],
+                "image_items": [],
+                "image_urls": [],
+            }
+            for attr in result.product_attribute:
+                transform_result["product_attributes"].append(
+                    {
+                        "attribute_name": attr.attribute_name.attribute_name,
+                        "attribute.value": attr.attribute_value,
+                    }
+                )
+            for attr in result.image:
+                transform_result["image_items"].append(
+                    {"id": attr.id, "image_url": attr.image_url, "logo": attr.logo}
+                )
+                transform_result["image_urls"].append(attr.image_url)
+            return transform_result

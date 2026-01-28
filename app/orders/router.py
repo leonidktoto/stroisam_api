@@ -121,7 +121,7 @@ async def reorder(order_id: int, user: SUsers = Depends(get_current_active_auth_
 
     for item in order_items:
         product = await ProductsDAO.find_one_or_none(id=item["product_id"])
-        if product:
+        if product and product.is_active:
             await CartsDAO.add_data(
                 product_id=item["product_id"],
                 quantity=item["quantity"],

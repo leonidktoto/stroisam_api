@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey
+from sqlalchemy import Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from starlette.requests import Request
 
@@ -18,6 +18,7 @@ class Products(Base):
     stock: Mapped[int] = mapped_column(nullable=True)
 
     category = relationship("Categories", back_populates="products")
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default="True")
     product_attribute = relationship(
         "ProductAttributes", back_populates="product", cascade="all, delete-orphan"
     )
