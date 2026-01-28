@@ -147,11 +147,12 @@ class ProductsDAO(BaseDAO):
                     Products.description,
                     Products.price,
                     Products.stock,
+                    Products.is_active,
                     subquery_im.c.image_url,
                 )
                 .join(subquery_pr, Products.id == subquery_pr.c.product_id)
                 .join(subquery_im, Products.id == subquery_im.c.product_id, isouter=True)
-                .where(and_(Products.category_id == category_id, Products.is_active._is(True)))
+                .where(and_(Products.category_id == category_id,Products.is_active.is_(True)))
             )
 
             print("!!!!!!@@@@@@@@@@!!!!!!!!!!@@@@@@@@@@@@!!!!!!!!!!!")
