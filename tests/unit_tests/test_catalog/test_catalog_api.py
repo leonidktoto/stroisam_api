@@ -95,7 +95,13 @@ async def test_get_products_by_category_id(
                 "product_name": "Доска",
                 "description": "прямоугольная",
                 "price": 13,
-                "product_attributes": [{"attribute_name": "Материал", "attribute.value": "Сосна"}],
+                "product_attributes": [
+                    {
+                        "attribute_name": "Материал",
+                        "attribute_name_id": 1,
+                        "attribute.value": "Сосна",
+                    }
+                ],
                 "image_urls": [],
             },
         ),
