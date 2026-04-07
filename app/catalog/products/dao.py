@@ -80,6 +80,7 @@ class ProductsDAO(BaseDAO):
                 transform_result["product_attributes"].append(
                     {
                         "attribute_name": attr.attribute_name.attribute_name,
+                        "attribute_name_id": attr.attribute_name.id,
                         "attribute.value": attr.attribute_value,
                     }
                 )
@@ -238,6 +239,7 @@ class ProductsDAO(BaseDAO):
                 transform_result["product_attributes"].append(
                     {
                         "attribute_name": attr.attribute_name.attribute_name,
+                        "attribute_name_id": attr.attribute_name.id,
                         "attribute.value": attr.attribute_value,
                     }
                 )

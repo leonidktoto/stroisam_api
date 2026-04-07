@@ -1,0 +1,239 @@
+{% extends "layout.html" %}
+
+{% block header %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h1></h1>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('admin:index') }}">Admin</a>
+            </li>
+            <li class="breadcrumb-item active">Редактировать товар</li>
+        </ol>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <form method="get" action="{{ request.url.path }}">
+                        <div class="card-body border-bottom py-3">
+                            <div class="mb-3">
+                                <label for="product_name" class="form-label">Товар</label>
+                                <select name="product_name" id="product_name" class="form-control select2">
+                                    <option value=""></option>
+                                    {% for name in product_names %}
+                                        <option value="{{ name }}" {% if name == selected_product_name %}selected{% endif %}>
+                                            {{ name }}
+                                        </option>
+                                    {% else %}
+                                        <option disabled>Нет товаров</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-footer text-black">
+                            <div class="btn-list ms-auto justify-content-end">
+                                <button type="submit" class="btn btn-primary">Показать</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% if selected_product_name and not product %}
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="alert alert-warning">Товар не найден.</div>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if product %}
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <form id="product-form" method="post" action="{{ url_for('managment:update_product') }}" enctype="multipart/form-data">
+                                <input type="hidden" name="product_id" value="{{ product.id }}">
+                                <input type="hidden" name="original_product_name" value="{{ product.product_name }}">
+                            <h3 class="card-title">Данные товара</h3>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">ID</label>
+                                    <input type="text" class="form-control" value="{{ product.id }}" readonly>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Артикул</label>
+                                    <input type="text" name="article" class="form-control" value="{{ product.article }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Категория</label>
+                                    <input type="text" class="form-control" value="{{ product.category_id }}" readonly>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Наименование</label>
+                                    <input type="text" name="product_name" class="form-control" value="{{ product.product_name }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Цена</label>
+                                    <input type="number" min="1" max="999999999" name="price" class="form-control" value="{{ product.price }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Количество</label>
+                                    <input type="number" min="0" max="999999999" name="stock" class="form-control" value="{{ product.stock }}" required>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Описание</label>
+                                    <textarea class="form-control" name="description" rows="4">{{ product.description }}</textarea>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h4 class="card-title">Атрибуты</h4>
+                                <div id="attributes-container">
+                                    {% if product.product_attributes %}
+                                        {% for attr in product.product_attributes %}
+                                            <div class="attribute-group d-flex align-items-center mb-2">
+                                                <input type="hidden" name="attributes" value="{{ attr['attribute_name_id'] }}">
+                                                <input type="text" class="form-control me-3" value="{{ attr['attribute_name'] }}" readonly>
+                                                <div style="width: 20px;"></div>
+                                                <input type="text" maxlength="2000" name="attribute_values" class="form-control me-2" placeholder="Значение" value="{{ attr['attribute.value'] }}" required>
+                                                <button type="button" class="btn btn-danger btn-sm remove-attribute">&times;</button>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <button type="button" id="add-attribute" class="btn btn-primary btn-sm mt-2">Добавить аттрибуты</button>
+                            </div>
+                            </form>
+
+                            <div class="mt-4">
+                                <h4 class="card-title">Изображения</h4>
+                                {% if product.image_items %}
+                                    <div class="d-flex flex-wrap gap-3">
+                                        {% for image in product.image_items %}
+                                            {% set medium_url = image.image_url ~ "_medium.jpeg" %}
+                                            <div class="border rounded p-2 text-center" style="width: 160px;">
+                                                <a href="{{ medium_url }}" target="_blank" rel="noopener">
+                                                    <img src="{{ medium_url }}" alt="product image" class="img-fluid" style="max-height: 120px;">
+                                                </a>
+                                                <div class="small mt-2 text-muted text-truncate">{{ medium_url }}</div>
+                                                <div class="form-check mt-2">
+                                                    <input class="form-check-input" type="radio" name="image_id" id="logo_{{ image.id }}" value="{{ image.id }}" {% if image.logo %}checked{% endif %} form="logo-form">
+                                                    <label class="form-check-label" for="logo_{{ image.id }}">Логотип</label>
+                                                </div>
+                                                <form method="post" action="{{ url_for('managment:delete_product_image', image_id=image.id) }}" class="mt-2">
+                                                    <input type="hidden" name="product_name" value="{{ product.product_name }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                                </form>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <form id="logo-form" method="post" action="{{ url_for('managment:set_product_logo') }}" class="mt-3">
+                                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                                        <input type="hidden" name="product_name" value="{{ product.product_name }}">
+                                    </form>
+                                {% else %}
+                                    <div class="text-muted">Изображения не указаны.</div>
+                                {% endif %}
+                                <div class="mt-3">
+                                    <label for="images" class="form-label">Добавить изображения</label><br>
+                                    <input type="file" id="images" name="images" class="form-control" multiple accept=".jpg, .jpeg, .png" form="product-form"><br>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 text-end">
+                                <button type="submit" class="btn btn-success" form="product-form">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block head_css %}
+    {{ super() }}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block script %}
+    {{ super() }}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#product_name').select2({
+                placeholder: 'Поиск',
+                allowClear: true
+            });
+
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const logoForm = document.getElementById("logo-form");
+            if (!logoForm) {
+                return;
+            }
+            const logoInputs = document.querySelectorAll('input[name="image_id"][form="logo-form"]');
+            logoInputs.forEach((input) => {
+                input.addEventListener("change", function () {
+                    logoForm.submit();
+                });
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const attributesContainer = document.getElementById("attributes-container");
+            const addAttributeButton = document.getElementById("add-attribute");
+            const availableAttributes = JSON.parse('{{ attributes | tojson | safe }}');
+
+            function addAttribute() {
+                const attributeGroup = document.createElement("div");
+                attributeGroup.classList.add("attribute-group", "d-flex", "align-items-center", "mb-2");
+
+                attributeGroup.innerHTML = `
+                    <select name="attributes" class="form-control me-3" required>
+                        <option value="">Выберите аттрибут</option>
+                        ${availableAttributes.map(attr => `<option value="${attr.id}">${attr.attribute_name}</option>`).join("")}
+                    </select>
+                    <div style="width: 20px;"></div>
+                    <input type="text" maxlength="2000" name="attribute_values" class="form-control me-2" placeholder="Значение" required>
+                    <button type="button" class="btn btn-danger btn-sm remove-attribute">&times;</button>
+                `;
+
+                attributesContainer.appendChild(attributeGroup);
+
+                const newSelect = attributeGroup.querySelector('select');
+                $(newSelect).select2({
+                    placeholder: 'Поиск',
+                    allowClear: true
+                });
+
+                const removeButton = attributeGroup.querySelector(".remove-attribute");
+                removeButton.addEventListener("click", function () {
+                    attributeGroup.remove();
+                });
+            }
+
+            if (addAttributeButton) {
+                addAttributeButton.addEventListener("click", addAttribute);
+            }
+
+            document.querySelectorAll(".remove-attribute").forEach((btn) => {
+                btn.addEventListener("click", function () {
+                    const group = btn.closest(".attribute-group");
+                    if (group) {
+                        group.remove();
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

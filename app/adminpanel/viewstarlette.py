@@ -475,6 +475,34 @@ class AddProductView(CustomView):
             "add_product.html",
             {"request": request, "categories": categories, "attributes": attributes},
         )
+
+
+class EditProductView(CustomView):
+    name = "Редактировать товар"
+    label = "Редактировать товар"
+    icon = "fa fa-pen"
+    path = "/edit_product"
+
+    async def render(self, request: Request, templates=None) -> HTMLResponse:
+        product_name = request.query_params.get("product_name")
+        product_names = await ProductsDAO.get_all_product_names()
+        attributes_from_db = await AttributesDAO.find_all()
+        attributes = [dict(attr) for attr in attributes_from_db]
+        product = None
+
+        if product_name:
+            product = await ProductsDAO.find_product_by_name(product_name)
+
+        return templates.TemplateResponse(
+            "edit_product.html",
+            {
+                "request": request,
+                "product_names": product_names,
+                "selected_product_name": product_name,
+                "attributes": attributes,
+                "product": product,
+            },
+        )
 #class ManagmentOrderView(CustomView):
 #    name = "Работа с заказом"
 #    label = "Работа с заказом"

@@ -7,6 +7,7 @@ from app.adminpanel.viewstarlette import (
     AttributesView,
     CartsView,
     CategoriesView,
+    EditProductView,
     ManagmentOrderView,
     OrderItemsView,
     OrdersView,
@@ -47,10 +48,14 @@ def create_admin() -> Admin:
     custom_view = AddProductView(
         path="/add_product", label="Добавить новый товар", icon="fa fa-plus"
     )
+    edit_product_view = EditProductView(
+        path="/edit_product", label="Редактировать товар", icon="fa fa-pen"
+    )
     managment_orders = ManagmentOrderView(
         path="/managment_order", label="Работа с заказом", icon="fa fa-plus"
     )
     admin.add_view(custom_view)
+    admin.add_view(edit_product_view)
     admin.add_view(managment_orders)
 
 

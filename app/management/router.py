@@ -13,12 +13,15 @@ from fastapi import (
 from fastapi.responses import JSONResponse, RedirectResponse
 from PIL import Image
 from pydantic import _migration
+from sqlalchemy import update
 
 from app.catalog.categories.dao import CategoriesDAO
 from app.catalog.product_attributes.dao import ProductAttributesDAO
 from app.catalog.product_images.dao import ProductImagesDAO
+from app.catalog.product_images.models import ProductImages
 from app.catalog.products.dao import ProductsDAO
 from app.config import settings
+from app.database import async_session_maker
 from app.management.helpers import load_images_to_s3
 from app.management.dao import ManagementDAO
 from app.orders.order_deliveries.dao import OrderDeliveriesDAO
@@ -144,6 +147,164 @@ async def add_product_form(
             content={"error": "Ошибка добавления товара", "Детали": str(e)}, status_code=400
         )
 
+
+
+@router.post("/product_images/add", name="managment:add_product_images")
+async def add_product_images(
+    request: Request,
+    product_id: int = Form(..., gt=0),
+    product_name: str = Form(""),
+    images: list[UploadFile] = File(None),
+    user: SUsers = Depends(get_admin_active_auth_user),
+):
+    try:
+        product = await ProductsDAO.find_one_or_none(id=product_id)
+        if not product:
+            return JSONResponse(content={"error": "Товар не найден"}, status_code=404)
+
+        category = await CategoriesDAO.find_by_id(product.category_id)
+        if not category:
+            return JSONResponse(content={"error": "Категория не найдена"}, status_code=404)
+
+        if images and images[0].filename != "":
+            for image in images:
+                image_url = load_images_to_s3(
+                    file=image, file_dir=category.category_name, product_id=product.id
+                )
+                logo = True if image.filename and image.filename.startswith("logo.") else False
+                await ProductImagesDAO.add_data(
+                    product_id=product.id, image_url=image_url, logo=logo
+                )
+
+        if not product_name:
+            product_name = product.product_name
+        root_path = request.scope.get("root_path", "")
+        return RedirectResponse(
+            url=f"{root_path}/admin/edit_product?product_name={product_name}", status_code=303
+        )
+    except Exception as e:
+        return JSONResponse(
+            content={"error": "Ошибка добавления изображений", "Детали": str(e)},
+            status_code=400,
+        )
+
+
+@router.post("/product_images/{image_id}/delete", name="managment:delete_product_image")
+async def delete_product_image(
+    request: Request,
+    image_id: int,
+    product_name: str = Form(""),
+    user: SUsers = Depends(get_admin_active_auth_user),
+):
+    await ProductImagesDAO.delete_by_filter(id=image_id)
+    if product_name:
+        root_path = request.scope.get("root_path", "")
+        return RedirectResponse(
+            url=f"{root_path}/admin/edit_product?product_name={product_name}", status_code=303
+        )
+    root_path = request.scope.get("root_path", "")
+    return RedirectResponse(url=f"{root_path}/admin/edit_product", status_code=303)
+
+
+@router.post("/product_images/set_logo", name="managment:set_product_logo")
+async def set_product_logo(
+    request: Request,
+    image_id: int = Form(..., gt=0),
+    product_id: int = Form(..., gt=0),
+    product_name: str = Form(""),
+    user: SUsers = Depends(get_admin_active_auth_user),
+):
+    async with async_session_maker() as session:
+        await session.execute(
+            update(ProductImages)
+            .where(ProductImages.product_id == product_id)
+            .values(logo=False)
+        )
+        await session.execute(
+            update(ProductImages)
+            .where(ProductImages.id == image_id)
+            .values(logo=True)
+        )
+        await session.commit()
+
+    root_path = request.scope.get("root_path", "")
+    return RedirectResponse(
+        url=f"{root_path}/admin/edit_product?product_name={product_name}", status_code=303
+    )
+
+
+@router.post("/product/update", name="managment:update_product")
+async def update_product(
+    request: Request,
+    product_id: int = Form(..., gt=0),
+    original_product_name: str = Form(""),
+    product_name: str = Form(..., max_length=255),
+    article: str = Form("", max_length=20),
+    price: int = Form(..., gt=0, le=999999999),
+    stock: int = Form(..., gt=0, le=999999999),
+    description: str = Form("", max_length=2000),
+    attributes: List[str] = Form([]),
+    attribute_values: List[str] = Form([], max_length=2000),
+    images: list[UploadFile] = File(None),
+    user: SUsers = Depends(get_admin_active_auth_user),
+):
+    try:
+        form_data = await request.form()
+        attributes = form_data.getlist("attributes")
+        attribute_values = form_data.getlist("attribute_values")
+
+        payload = []
+        for attr_id, value in zip(attributes, attribute_values):
+            if not attr_id:
+                continue
+            payload.append(
+                {
+                    "product_id": product_id,
+                    "attribute_name_id": int(attr_id),
+                    "attribute_value": value,
+                }
+            )
+
+        await ProductsDAO.update_data(
+            {
+                "product_name": product_name,
+                "article": article,
+                "price": price,
+                "stock": stock,
+                "description": description,
+            },
+            id=product_id,
+        )
+
+        await ProductAttributesDAO.delete_by_filter(product_id=product_id)
+        if payload:
+            await ProductAttributesDAO.add_many(data_list=payload)
+
+        if images and images[0].filename != "":
+            product = await ProductsDAO.find_one_or_none(id=product_id)
+            if product:
+                category = await CategoriesDAO.find_by_id(product.category_id)
+                if category:
+                    for image in images:
+                        image_url = load_images_to_s3(
+                            file=image, file_dir=category.category_name, product_id=product.id
+                        )
+                        logo = True if image.filename and image.filename.startswith("logo.") else False
+                        await ProductImagesDAO.add_data(
+                            product_id=product.id, image_url=image_url, logo=logo
+                        )
+
+        if not product_name:
+            product_name = original_product_name
+        root_path = request.scope.get("root_path", "")
+        return RedirectResponse(
+            url=f"{root_path}/admin/edit_product?product_name={product_name}", status_code=303
+        )
+    except Exception as e:
+        return JSONResponse(
+            content={"error": "Ошибка обновления товара", "Детали": str(e)},
+            status_code=400,
+        )
 
 
 @router.post("/find_order")
